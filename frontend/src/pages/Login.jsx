@@ -6,10 +6,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../api/authApi";
 import { loginSchema } from "../schemas/authSchemas";
 import ErrorMessage from "../components/ErrorMessage";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
     const navigate = useNavigate();
-    
+    const login = useAuth();
+
     const initialValues = {
         email: "",
         password: ""
@@ -23,7 +25,8 @@ export default function Login() {
     const onSubmit = async (data) => {
         try {
             const res = await loginUser(data)
-            localStorage.setItem("token", res.token)
+            login(res.data.user, res.data.token)
+            // localStorage.setItem("token", res.token)
             toast.success("Inicio de sesion exitoso!")
             const loginExitoso = true;
 
