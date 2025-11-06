@@ -15,7 +15,8 @@ export default {
       colors: {
         login: '#FCAF3C',
         register: '#5268F7',
-        
+        sidebar: '#F3E43C',
+        danger: '#E53E3E',
         
       },
     },
