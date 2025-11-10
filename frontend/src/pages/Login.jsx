@@ -10,7 +10,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
     const navigate = useNavigate();
-    const login = useAuth();
+    const { login } = useAuth();
 
     const initialValues = {
         email: "",
@@ -25,8 +25,8 @@ export default function Login() {
     const onSubmit = async (data) => {
         try {
             const res = await loginUser(data)
-            login(res.data.user, res.data.token)
-            // localStorage.setItem("token", res.token)
+            console.log(res);
+            login(res.user, res.token)
             toast.success("Inicio de sesion exitoso!")
             const loginExitoso = true;
 
