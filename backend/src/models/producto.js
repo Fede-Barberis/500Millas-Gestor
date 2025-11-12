@@ -1,0 +1,25 @@
+import { DataTypes } from "sequelize";
+import db from "../config/database.js";
+
+const Producto = db.define('Producto', {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    nombre: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+        unique: true
+    },
+    stock: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    }
+}, {
+    tableName: "productos",
+    timestamps: false
+})
+
+export default Producto;
