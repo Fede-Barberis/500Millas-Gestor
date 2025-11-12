@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import db  from './config/database.js';
-import authRoutes from './routes/authRoutes.js'
+import authRoutes from './routes/authRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
 import { authenticateToken } from "./middlewares/authMiddlewares.js";
 
 dotenv.config();
@@ -16,6 +17,7 @@ app.use(express.json())    // Permite leer JSON en los requests
 
 //* Rutas de la api
 app.use("/api/auth", authRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Ruta de prueba protegida
 app.get("/api/me", authenticateToken, (req, res) => {
@@ -29,7 +31,7 @@ const start = async () => {
         console.log("✅ Conectado a DB (authenticate).");
 
         // Sincronizar modelos. Usá alter:true en desarrollo para que actualice sin borrar datos.
-        await db.sync({ alter: true });
+        await db.sync();
         console.log("✅ Modelos sincronizados.");
 
         app.listen(PORT, () => {

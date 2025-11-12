@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
+//* Configuracion bd con Sequalize
 const db = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
     host: process.env.DB_HOST,
     dialect: 'mysql',
@@ -11,7 +12,7 @@ const db = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.D
 
 export default db;
 
-// //* Configuracion de la base de datos
+// //* Configuracion de la base de datos con MySql
 // const dbConfig = {
 //     host: process.env.DB_HOST || 'localHost',
 //     user: process.env.DB_USER || 'root',
