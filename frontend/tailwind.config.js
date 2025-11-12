@@ -11,6 +11,7 @@ export default {
         heading: ['Outfit', 'sans-serif'],
         button: ['Poppins', 'sans-serif'],
         input: ['Nunito Sans', 'sans-serif'],
+        body: ['sans-serif'],
       },
       colors: {
         login: '#FCAF3C',

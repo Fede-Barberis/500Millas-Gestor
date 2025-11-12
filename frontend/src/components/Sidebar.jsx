@@ -19,6 +19,7 @@ export default function Sidebar({ isOpen }) {
             className={`
                 fixed top-0 left-0 h-full 
                 flex flex-col justify-between
+                
                 bg-white
                 text-black shadow-lg
                 transition-all duration-300 linear z-40 
@@ -47,7 +48,7 @@ export default function Sidebar({ isOpen }) {
                     {isHovered && <span className={`
                     whitespace-nowrap overflow-hidden transition-all duration-100
                     ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
-                    `}>Dashboard</span>}
+                    `}>Inicio</span>}
                 </NavLink>
 
 
