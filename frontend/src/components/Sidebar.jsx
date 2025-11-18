@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Home, Package, UserRound, Wheat, LogOut } from "lucide-react"; 
 import { useAuth } from "../context/AuthContext";
 
 export default function Sidebar({ isOpen }) {
+    const navigate = useNavigate()
     const [isHovered, setIsHovered] = useState(false);
-    const logout = useAuth();
+    const { logout } = useAuth();
 
     const handleLogout = () => {
         logout();
