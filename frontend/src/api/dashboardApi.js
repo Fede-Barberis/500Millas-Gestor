@@ -16,3 +16,15 @@ export const getPieChart = async (mes, anio) => {
     const res = await api.get(`/dashboard/pieChart?month=${mes}&year=${anio}`);
     return res.data;
 };
+
+
+export const getAlertas = async () => {
+    const res = await api.get("/dashboard/alerts");
+    return res.data;
+}
+
+
+export const marcarAlertasLeidas = async (id) => {
+    const res = await api.patch(`/dashboard/alerts/${id}`);
+    return res.data;
+}

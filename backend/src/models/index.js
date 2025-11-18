@@ -7,6 +7,7 @@ import MateriaPrima from "./materiaPrima.js";
 import CompraMP from "./compraMP.js";
 import Empleado from "./empleado.js";
 import DetalleEmpleado from "./detalleEmpleado.js";
+import Alerta from "./alerta.js";
 
 // Definir asociaciones entre modelos
 
@@ -32,4 +33,5 @@ export {
     CompraMP,
     Empleado,
     DetalleEmpleado,
+    Alerta,
 };

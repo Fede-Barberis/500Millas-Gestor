@@ -12,7 +12,7 @@ export default function FiltroFecha({ mes, anio, setMes, setAnio }) {
     return (
         <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-4 rounded-xl">
         <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-indigo-500" />
+            <Calendar className="w-5 h-5 text-gray-500" />
             <select
                 value={mes}
                 onChange={(e) => setMes(Number(e.target.value))}
@@ -27,7 +27,7 @@ export default function FiltroFecha({ mes, anio, setMes, setAnio }) {
         </div>
 
         <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-indigo-500" />
+            <Calendar className="w-5 h-5 text-gray-500" />
             <select
             value={anio}
             onChange={(e) => setAnio(Number(e.target.value))}

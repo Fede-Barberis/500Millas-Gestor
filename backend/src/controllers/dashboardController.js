@@ -1,4 +1,4 @@
-import { Venta, CompraMP, DetalleEmpleado, Producto } from "../models/index.js";
+import { Venta, CompraMP, DetalleEmpleado, Producto, MateriaPrima, Alerta } from "../models/index.js";
 import { Sequelize, Op } from "sequelize";
 
 async function calcularTotalesPorMes(inicio, fin) {
@@ -225,7 +225,165 @@ const dashboardController = {
             return res.json(data);
         } catch (error) {
             console.error("Error al obtener datos del pie chart:", error);
-            res.status(500).json({ error: "Error al generar gráfico de productos vendidos" });
+            res.status(500).json({ 
+                error: "Error al generar gráfico de productos vendidos",
+                message: error.message
+            });
+        }
+    },
+
+
+    async getAlertas (req, res) {
+        try {
+            const hoy = new Date();
+            const limiteVencimiento = new Date();
+            limiteVencimiento.setDate(hoy.getDate() + 7);
+            
+            //* ---- Buscar condiciones ----
+            
+            // Productos con menos de 10 unidades
+            const productosBajoStock = await Producto.findAll({
+                where: {
+                    stock: { [Op.lt]: 10}
+                },
+                attributes: ["nombre", "stock"],
+            });
+
+            // Materias primas con poco stock
+            const mpBajoStock = await MateriaPrima.findAll({
+                where: {
+                    stock: { [Op.lt]: 10 },
+                },
+                attributes: ["nombre", "stock"],
+            });
+
+            // Materia prima por vencer (en los próximos 7 días)
+            const mpVencimiento = await CompraMP.findAll({
+                where: {
+                    fch_vencimiento: {
+                        [Op.lte]: limiteVencimiento, // Incluye vencidas y por vencer
+                    },
+                },
+                attributes: ["id_compra", "fch_vencimiento"],
+                include: [
+                    {
+                        model: MateriaPrima,
+                        attributes: ["nombre"],
+                    },
+                ],
+            });
+
+            // pagos adeudados
+            const pagosPendientes = await CompraMP.findAll({
+                where: {
+                    isPagado: false
+                },
+                attributes: ["id_compra", "precio", "fecha", "cantidad"],
+                include: [
+                    {
+                        model: MateriaPrima,
+                        attributes: ["nombre"],
+                    },
+                ],
+            })
+
+            //* ---- Generar alertas dinámicamente ----
+            const alertas = [];
+
+            productosBajoStock.forEach(p => {
+                alertas.push({
+                    tipo: "producto",
+                    nivel: "warning",
+                    mensaje: `Stock bajo del producto "${p.nombre}" : ${p.stock} unidades`,
+                });
+            });
+
+            mpBajoStock.forEach(mp => {
+                alertas.push({
+                    tipo: "materia_prima",
+                    nivel: "danger",
+                    mensaje: `Stock bajo de materia prima "${mp.nombre}" : ${mp.stock} unidades`,
+                });
+            });
+
+            // Materias primas vencidas o por vencer
+            mpVencimiento.forEach(compra => {
+                const nombreMp = compra.MateriaPrima?.nombre || "Desconocida";
+                const fecha = new Date(compra.fch_vencimiento);
+                const fechaFormateada = fecha.toLocaleDateString("es-AR");
+
+                const vencida = fecha < hoy; // true si ya venció
+
+                alertas.push({
+                    tipo: "vencimiento",
+                    nivel: vencida ? "expired" : "warning",  
+                    mensaje: vencida
+                        ? `Materia prima "${nombreMp}" venció el ${fechaFormateada}`
+                        : `Materia prima "${nombreMp}" vence el ${fechaFormateada}`,
+                });
+            });
+
+            pagosPendientes.forEach(p => {
+                alertas.push({
+                    tipo: "compra_mp",
+                    nivel: "warning",
+                    mensaje: `Falta pagar compra (${p.fecha}) ${p.MateriaPrima.nombre}. ||  Total a pagar: ${(p.precio * p.cantidad)}`,
+                });
+            });
+
+
+            //* ---- Guardar solo las nuevas ----
+            for (const alerta of alertas) {
+                const yaExiste = await Alerta.findOne({
+                    where: { mensaje: alerta.mensaje },
+                });
+
+                if (!yaExiste) {
+                    await Alerta.create(alerta);
+                }
+            }
+
+            //* ---- Obtener solo las no leídas ----
+            const alertasNoLeidas = await Alerta.findAll({
+                where: { is_leida: false },
+                order: [["createdAt", "DESC"]],
+            });
+
+            return res.json({ alertas: alertasNoLeidas });
+
+        } catch (error) {
+            console.log("Error en getAlertas: ",error);
+            res.status(500).json({
+                error: "Error al obtener alertas",
+                message: error.message
+            })
+        }
+    },
+
+
+    async marcarComoLeida (req, res) {
+        try {
+            const { id } = req.params;
+
+            const alerta = await Alerta.findByPk(id);
+
+            if (!alerta) {
+                return res.status(404).json({ message: "Alerta no encontrada" });
+            }
+
+            alerta.is_leida = true;
+            await alerta.save();
+
+            res.json({
+                message: "Alerta marcada como leída",
+                alerta,
+            });
+        } catch (error) {
+            console.error("Error al marcar alerta como leída:", error);
+            res.status(500).json({
+                error: "Error al actualizar la alerta",
+                message: error.message,
+            });
         }
     }
 };
