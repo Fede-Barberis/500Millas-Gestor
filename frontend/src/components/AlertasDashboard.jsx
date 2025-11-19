@@ -16,7 +16,7 @@ export default function AlertasDashboard({ alertas, toggleCheck, filtro, setFilt
 
 
     return (
-        <div className="min-h-[300px] max-h-[600px] h-auto mt-8 bg-white rounded-2xl shadow-lg p-6 space-y-4 animate-fadeIn overflow-auto">
+        <div className="min-h-[300px] max-h-[600px] h-auto bg-white rounded-2xl shadow-lg p-6 space-y-4 animate-fadeIn overflow-auto">
 
             {/* HEADER */}
             <div className="flex flex-col lg:flex-row border-b pb-2 justify-between items-center gap-4">
