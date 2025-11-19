@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { getDataChart, getPieChart, getStats, getAlertas, marcarAlertasLeidas } from "../api/dashboardApi";
+import { getDataChart, getPieChart, getStats, getAlertas, marcarAlertasLeidas, getPedidos, getDetallePedido } from "../api/dashboardApi";
 
 export function useDashboardData () {
     const [balance, setBalance]= useState({
@@ -18,17 +18,21 @@ export function useDashboardData () {
     const [alertas, setAlertas] = useState([])
     const [filtro, setFiltro] = useState("all");
 
+    const [pedidos, setPedidos] = useState([]);
+    const [detallePedido, setDetallePedido] = useState(null);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
 
     const fetchData = useCallback(async () => {
         try {
-            const [balanceData, chartData, pieChartData, alertasData] = await Promise.all([
+            const [balanceData, chartData, pieChartData, alertasData, pedidosData] = await Promise.all([
                 getStats(),
                 getDataChart(),
                 getPieChart(mes, anio),
                 getAlertas(),
+                getPedidos()
             ])
 
             setBalance(prevBalance => ({
@@ -39,6 +43,7 @@ export function useDashboardData () {
             setChart(chartData || [])
             setPieChart(pieChartData || [])
             setAlertas(alertasData.alertas || [])
+            setPedidos(pedidosData || [])
 
         } catch (error) {
             console.log(error);
@@ -92,21 +97,42 @@ export function useDashboardData () {
     }, [alertas, filtro]);
 
 
+    // FUNCION PARA CARGAR EL DETALLE DEL PEDIDO CUANDO SE PRESIONA EN EL CALENDARIO
+    const seleccionarPedido = async (id_pedido) => {
+        try {
+            const detalles = await Promise.all(
+                id_pedido.map(id_pedido => getDetallePedido(id_pedido))
+            );
+            setDetallePedido(detalles);  
+        } catch (err) {
+            console.error("Error al cargar detalles de pedidos:", err);
+        }
+    };
+
+
     // Lo que devuelve el hook
     return { 
         balance, 
         chart, 
         pieChart, 
-        loading, 
-        error, 
-        fetchData, 
-        mes, 
-        anio, 
+        mes,
+        anio,
         setMes, 
         setAnio,
+        
+        loading, 
+        error, 
+        fetchData,
+
         alertas: alertasFiltradas,
         toggleCheck,  
+        
         filtro,
-        setFiltro
+        setFiltro,
+        
+        pedidos,
+        detallePedido,
+        setDetallePedido,
+        seleccionarPedido
     };
 }

@@ -3,6 +3,8 @@ import IncomeExpenseChart from "../components/IncomeExpenseChart"
 import { useDashboardData } from "../hooks/useDashboardData"
 import TopVentasChart from "../components/TopVentasChart"
 import AlertasDashboard from "../components/AlertasDashboard"
+import Calendario from "../components/Calendario"
+import ModalDetallePedido from "../components/ModalDetallePedido";
 
 export default function Dashboard() {
     const {
@@ -20,13 +22,17 @@ export default function Dashboard() {
         toggleCheck,
         filtro,
         setFiltro,
+        pedidos,
+        detallePedido,
+        setDetallePedido,
+        seleccionarPedido
     } = useDashboardData();
 
     if (loading) return <p className="text-gray-500">Cargando...</p>
     if (error) return <p className="text-red-500">{error}</p>
 
     return (
-        <div className="px-6 py-2 space-y-6">
+        <div className="px-6 py-2 space-y-8">
             {/* --- Estadísticas superiores --- */}
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatsCards balance={balance} />    
@@ -38,8 +44,10 @@ export default function Dashboard() {
                 <TopVentasChart data={pieChart} mes={mes} anio={anio} setMes={setMes} setAnio={setAnio} />
             </section>
 
-            <section className="grid grid-cols-1 lg:grid-cols-[2fr_1.5fr] gap-6" >
+            <section className="grid grid-cols-1 lg:grid-cols-[2fr_0.5fr] gap-6" >
                 <AlertasDashboard alertas={alertas} toggleCheck={toggleCheck} filtro={filtro} setFiltro={setFiltro} />
+                <Calendario pedidos={pedidos} onSelectPedido={seleccionarPedido} />
+                <ModalDetallePedido pedido={detallePedido} onClose={() => setDetallePedido(null)} />
             </section>
         </div> 
     )

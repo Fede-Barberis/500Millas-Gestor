@@ -28,3 +28,14 @@ export const marcarAlertasLeidas = async (id) => {
     const res = await api.patch(`/dashboard/alerts/${id}`);
     return res.data;
 }
+
+
+export const getPedidos = async () => {
+    const res = await api.get("/dashboard/pedidos");
+    return res.data;
+}
+
+export const getDetallePedido = async (id) => {
+    const res = await api.get(`/dashboard/pedidos/${id}`);
+    return res.data;
+}
