@@ -8,6 +8,8 @@ import CompraMP from "./compraMP.js";
 import Empleado from "./empleado.js";
 import DetalleEmpleado from "./detalleEmpleado.js";
 import Alerta from "./alerta.js";
+import Pedido from "./pedido.js";
+import DetallePedido from "./detallePedido.js";
 
 // Definir asociaciones entre modelos
 
@@ -23,6 +25,14 @@ CompraMP.belongsTo(MateriaPrima, { foreignKey: 'id_materiaPrima' });
 Empleado.hasMany(DetalleEmpleado, { foreignKey: 'id_empleado' });
 DetalleEmpleado.belongsTo(Empleado, { foreignKey: 'id_empleado' });
 
+// Pedido -> DetallePedido (Un pedido puede tener muchos detalles de pedido)
+Pedido.hasMany(DetallePedido, { foreignKey: 'id_pedido' });
+DetallePedido.belongsTo(Pedido, { foreignKey: 'id_pedido' });
+
+// Producto -> DetallePedido (Un producto puede estar en muchos detalles de pedido)
+Producto.hasMany(DetallePedido, { foreignKey: 'id_producto' });
+DetallePedido.belongsTo(Producto, { foreignKey: 'id_producto' });
+
 
 export {
     db,
@@ -34,4 +44,6 @@ export {
     Empleado,
     DetalleEmpleado,
     Alerta,
+    Pedido,
+    DetallePedido
 };

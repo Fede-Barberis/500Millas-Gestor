@@ -1,4 +1,4 @@
-import { Venta, CompraMP, DetalleEmpleado, Producto, MateriaPrima, Alerta } from "../models/index.js";
+import { Venta, CompraMP, DetalleEmpleado, Producto, MateriaPrima, Alerta, Pedido, DetallePedido } from "../models/index.js";
 import { Sequelize, Op } from "sequelize";
 
 async function calcularTotalesPorMes(inicio, fin) {
@@ -213,7 +213,7 @@ const dashboardController = {
                 required: false
                 }
             ],
-            group: ['Venta.id_producto', 'Producto.id'],
+            group: ['Venta.id_producto', 'Producto.id_producto'],
             order: [[Sequelize.literal('totalVendidos'), 'DESC']]
             });
 
@@ -384,6 +384,54 @@ const dashboardController = {
                 error: "Error al actualizar la alerta",
                 message: error.message,
             });
+        }
+    },
+
+
+    async getPedidos (req, res) {
+        try{
+            const pedidos = await Pedido.findAll({
+                attributes: ["id_pedido", "fecha_entrega", "persona"],
+                order:[["fecha_entrega", "ASC"]],
+            });
+
+            return res.json( pedidos );
+        } catch (error) {
+            console.log("Error en getPedidos:", error);
+            return res.status(500).json({
+                error: "Error al obtener la lista de pedidos",
+                message: error.message
+            })
+        }
+    },
+
+
+    async getDetallePedido (req, res) {
+        try {
+            const { id } = req.params;
+
+            const pedido = await Pedido.findByPk(id, {
+                include: [
+                    {
+                        model: DetallePedido,
+                        include: [Producto],
+                    },
+                ],    
+            });
+
+            if(!pedido){ 
+                return res.status(404).json({
+                    error: "Pedido no encontrado"
+                })
+            }
+
+            return res.json(pedido);
+        } catch (error) {
+            console.log("Error en obteener detalles peidos:", error);
+            return res.status(500).json({
+                error: "Error al obtener detalles del pedido",
+                message: error.message
+            })
         }
     }
 };
