@@ -1,31 +1,50 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "sonner";
 import { PrivateRoute } from "../components/PrivateRoute.jsx";
 import AuthLayout from "../layouts/AuthLayout.jsx"
 import AppLayout from "../layouts/AppLayout.jsx";
 import Login from "../pages/Login.jsx";
 import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
+import Produccion from "../pages/Produccion.jsx";
+import Productos from "../pages/Productos.jsx";
 
 export default function AppRouter() {
     return (
+        <>
+        <Toaster 
+            position="bottom-right"
+            toastOptions={{
+                unstyled: false,
+                classNames: {
+                    success: '!bg-green-50 !border-l-4 !border-green-500',
+                    error: '!bg-red-100 !border-l-4 !border-red-600 ',
+                    title: '!text-base !font-semibold', // Tamaño del título
+                    description: '!text-sm', // Tamaño de la descripción
+                },
+                style: {
+                    zIndex: 9999,
+                }
+            }}
+        />
         <Routes>
             <Route element={<AuthLayout />}>
                 <Route path="/auth/login" element={<Login />} />
                 <Route path='/auth/register' element={<Register />} />
             </Route>
             
-            <Route element={<AppLayout />}>
-                <Route path="/dashboard" 
-                    element={
-                        <PrivateRoute>
-                            <Dashboard />
-                        </PrivateRoute>
-                    }
-                />
+            <Route element={
+                <PrivateRoute>
+                    <AppLayout />
+                </PrivateRoute>
+            }>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/produccion" element={<Produccion />} />
+                <Route path="/productos" element={<Productos />} />
             </Route>
             
             <Route path="*" element={<Navigate to="/auth/login" />} />
         </Routes>
-        
+        </>
     );
 }
