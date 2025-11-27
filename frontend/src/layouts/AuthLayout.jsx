@@ -9,8 +9,8 @@ export default function AuthLayout() {
 
     const backgroundStyle = {
         backgroundImage: isLogin
-        ? "url('/src/assets/fondoLogin.svg')"
-        : "url('/src/assets/fondoRegister.svg')",
+        ? "url(/assets/img/fondoLogin.svg)"
+        : "url(/assets/img/fondoRegister.svg)",
         backgroundSize: "cover",
         backgroundPosition: "center",
     };
