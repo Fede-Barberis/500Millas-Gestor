@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, Package, UserRound, Wheat, LogOut } from "lucide-react"; 
+import { Home, Package, UserRound, Wheat, LogOut, Handshake, CalendarCheck2, CirclePlus } from "lucide-react"; 
 import { useAuth } from "../context/AuthContext";
 
 export default function Sidebar({ isOpen }) {
@@ -30,7 +30,7 @@ export default function Sidebar({ isOpen }) {
             `}
         >
             {/* 🔝 Sección superior - enlaces */}
-            <div className={`flex flex-col mt-12 space-y-8 px-4 transition-all duration-300`}>
+            <div className={`flex flex-col mt-6 space-y-8 px-4 transition-all duration-300`}>
                 <div className={`${isHovered ? "flex flex-row justify-center gap-1 border-b border-black" : "inline"}`}>
                     <span className="text-2xl text-center font-heading text-black font-bold">500</span> 
                     <h1 className={`${isHovered ? "text-2xl font-semibold" : "text-xl"} font-heading text-yellow-500`}> Millas</h1>
@@ -52,6 +52,21 @@ export default function Sidebar({ isOpen }) {
                     `}>Inicio</span>}
                 </NavLink>
 
+
+                <NavLink
+                    to="/produccion"
+                    className={({ isActive }) =>
+                        `flex w-full gap-3 p-2 rounded-md transition-colors duration-300 
+                        ${isHovered ? "justify-start" : "justify-center"} 
+                        ${isActive ? "bg-sidebar font-semibold" : "hover:bg-sidebar hover:bg-opacity-60"}`
+                    }
+                >
+                    <CirclePlus size={20} strokeWidth={1.5} />
+                    {isHovered && <span className={`
+                    whitespace-nowrap overflow-hidden transition-all duration-300
+                    ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
+                    `}>Produccion</span>}
+                </NavLink>
 
                 <NavLink
                     to="/productos"
@@ -82,6 +97,38 @@ export default function Sidebar({ isOpen }) {
                     whitespace-nowrap overflow-hidden transition-all duration-300
                     ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
                     `}>Materias Primas</span>}
+                </NavLink>
+
+
+                <NavLink
+                    to="/ventas"
+                    className={({ isActive }) =>
+                        `flex w-full gap-3 p-2 rounded-md transition-colors duration-300 
+                        ${isHovered ? "justify-start" : "justify-center"} 
+                        ${isActive ? "bg-sidebar font-semibold" : "hover:bg-sidebar hover:bg-opacity-60"}`
+                    }
+                >
+                    <Handshake size={20} strokeWidth={1.5} />
+                    {isHovered && <span className={`
+                    whitespace-nowrap overflow-hidden transition-all duration-300
+                    ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
+                    `}>Ventas</span>}
+                </NavLink>
+
+
+                <NavLink
+                    to="/pedidos"
+                    className={({ isActive }) =>
+                        `flex w-full gap-3 p-2 rounded-md transition-colors duration-300 
+                        ${isHovered ? "justify-start" : "justify-center"} 
+                        ${isActive ? "bg-sidebar font-semibold" : "hover:bg-sidebar hover:bg-opacity-60"}`
+                    }
+                >
+                    <CalendarCheck2 size={20} strokeWidth={1.5} />
+                    {isHovered && <span className={`
+                    whitespace-nowrap overflow-hidden transition-all duration-300
+                    ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
+                    `}>Pedidos</span>}
                 </NavLink>
 
 

@@ -33,6 +33,7 @@ export default function Dashboard() {
 
     return (
         <div className="px-6 py-2 space-y-8">
+            {/* <h1 className="font-heading font-semibold text-3xl">Panel de Administracion</h1> */}
             {/* --- Estadísticas superiores --- */}
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatsCards balance={balance} />    

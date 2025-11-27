@@ -3,9 +3,9 @@ import { CircleAlert, AlertTriangle, CircleCheckIcon, Hourglass } from "lucide-r
 
 export default function AlertasDashboard({ alertas, toggleCheck, filtro, setFiltro }) {
     const iconMap = {
-        warning: CircleAlert, style: "border-amber-300 bg-amber-50 text-amber-600",
-        danger: AlertTriangle, style: "border-red-300 bg-red-50 text-red-600",
-        expired: Hourglass, style: "border-purple-300 bg-purple-50 text-purple-600",
+        warning: CircleAlert,
+        danger: AlertTriangle,
+        expired: Hourglass
     };
     
     const stylesMap = {
@@ -13,6 +13,7 @@ export default function AlertasDashboard({ alertas, toggleCheck, filtro, setFilt
         warning: "border-amber-300 bg-amber-50 text-amber-600",
         expired: "border-purple-300 bg-purple-50 text-purple-600",
     };
+
 
 
     return (
