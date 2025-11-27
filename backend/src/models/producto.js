@@ -16,6 +16,11 @@ const Producto = db.define('Producto', {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0
+    },
+    imagen: {  
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: null
     }
 }, {
     tableName: "productos",
