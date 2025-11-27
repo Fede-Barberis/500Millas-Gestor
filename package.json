@@ -1,0 +1,13 @@
+{
+  "name": "500millas-gestor",
+  "version": "1.0.0",
+  "description": "Sistema de gestión para emprendimiento familiar",
+  "scripts": {
+    "install": "cd backend && npm install",
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
