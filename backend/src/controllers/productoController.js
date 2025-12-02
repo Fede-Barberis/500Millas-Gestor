@@ -11,10 +11,10 @@ const productoController =  {
     
     async crearProducto(req, res) {
         try {
-            const { nombre, stock, imagen } = req.body;
+            const { nombre, stock } = req.body;
 
             // 1. Crear producción
-            const producto = await Producto.create({ nombre, stock, imagen });
+            const producto = await Producto.create({ nombre, stock });
 
             res.json({
                 ok: true,
