@@ -71,7 +71,7 @@ const productoController =  {
 
             await producto.update({
                 nombre: req.body.nombre,
-                stock: req.body.stock
+                // stock: req.body.stock
             });
             
             res.json({ 
