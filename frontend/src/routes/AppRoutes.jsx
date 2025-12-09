@@ -8,6 +8,7 @@ import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
 import Produccion from "../pages/Produccion.jsx";
 import Productos from "../pages/Productos.jsx";
+import MateriaPrima from "../pages/MateriaPrima.jsx";
 
 export default function AppRouter() {
     return (
@@ -41,6 +42,7 @@ export default function AppRouter() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/produccion" element={<Produccion />} />
                 <Route path="/productos" element={<Productos />} />
+                <Route path="/materiaPrima" element={<MateriaPrima />} />
             </Route>
             
             <Route path="*" element={<Navigate to="/auth/login" />} />
