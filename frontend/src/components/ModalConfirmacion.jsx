@@ -48,6 +48,7 @@ export default function ConfirmeModal({ open, onClose, onConfirm, title, message
                 {/* Footer con botones */}
                 <div className="bg-gray-50 px-6 py-4 rounded-b-2xl flex justify-end gap-3">
                     <button
+                        type="button"
                         onClick={onClose}
                         className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-all font-medium"
                     >
@@ -55,6 +56,7 @@ export default function ConfirmeModal({ open, onClose, onConfirm, title, message
                     </button>
 
                     <button
+                        type="button"
                         onClick={onConfirm}
                         className="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-sm hover:shadow-md font-medium flex items-center gap-2"
                     >
