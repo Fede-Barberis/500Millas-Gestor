@@ -100,7 +100,7 @@ export default function ProductoForm({ onCreated, onClose, initialData, isEditin
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] sm:max-w-xl md:max-w-xl lg:max-w-xl overflow-hidden transform transition-all animate-slideUp">
                 
                 {/* Header con gradiente */}
@@ -176,6 +176,7 @@ export default function ProductoForm({ onCreated, onClose, initialData, isEditin
                                             {...register("stock")}
                                             step="0.01"
                                             placeholder="0"
+                                            disabled={isEditing}
                                             className="w-full px-4 py-3 pr-24 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400"
                                         />
                                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">

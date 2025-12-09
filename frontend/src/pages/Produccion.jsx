@@ -44,7 +44,7 @@ export default function Productos() {
                     className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-heading font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-lg"
                 >
                     <Plus className="w-5 h-5" />
-                    Agregar Producto
+                    Agregar Produccion
                 </button>
             </div>
 
@@ -56,20 +56,22 @@ export default function Productos() {
                 editarProduccion={abrirModalEditar}
             />
 
-            {modalOpen && (
-                <ProduccionForm
-                    recetas={recetas}
-                    productos={productos}
-                    initialData={produccionAEditar} 
-                    isEditing={!!produccionAEditar} 
-                    onCreated={() => {
-                        fetchData();
-                        setModalOpen(false);
-                    }}
-                    onClose={cerrarModal}
-                    onSubmitProduccion={modificarProduccion}
-                />
-            )}
+            <div className='space-y-0'>
+                {modalOpen && (
+                    <ProduccionForm
+                        recetas={recetas}
+                        productos={productos}
+                        initialData={produccionAEditar} 
+                        isEditing={!!produccionAEditar} 
+                        onCreated={() => {
+                            fetchData();
+                            setModalOpen(false);
+                        }}
+                        onClose={cerrarModal}
+                        onSubmitProduccion={modificarProduccion}
+                    />
+                )}
+            </div>
         </div>
     );
 }

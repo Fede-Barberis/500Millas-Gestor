@@ -83,20 +83,21 @@ export default function Productos() {
                 </div>
             )}
 
-
-            {modalOpen && (
-                <ProductoForm
-                    productos={productos}
-                    initialData={productoAEditar} 
-                    isEditing={!!productoAEditar} 
-                    onCreated={() => {
-                        reload(); 
-                        setModalOpen(false);
-                    }}
-                    onClose={cerrarModal}
-                    onSubmitProducto={modificarProducto}
-                />
-            )}
+            <div className='space-y-0'>
+                {modalOpen && (
+                    <ProductoForm
+                        productos={productos}
+                        initialData={productoAEditar} 
+                        isEditing={!!productoAEditar} 
+                        onCreated={() => {
+                            reload(); 
+                            setModalOpen(false);
+                        }}
+                        onClose={cerrarModal}
+                        onSubmitProducto={modificarProducto}
+                    />
+                )}
+            </div>
         </div>
     );
 }
