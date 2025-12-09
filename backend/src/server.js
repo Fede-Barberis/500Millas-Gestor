@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import produccionRoutes from './routes/produccionRoutes.js';
 import productoRoutes from './routes/productoRoutes.js'
+import materiaPrimaRoutes from './routes/materiaPrimaRoutes.js'
 import { authenticateToken } from "./middlewares/authMiddlewares.js";
 
 dotenv.config();
@@ -21,7 +22,8 @@ app.use(express.json())    // Permite leer JSON en los requests
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/produccion", produccionRoutes);
-app.use("/api/producto", productoRoutes)
+app.use("/api/producto", productoRoutes);
+app.use("/api/materiaPrima", materiaPrimaRoutes);
 
 // Ruta de prueba protegida
 app.get("/api/me", authenticateToken, (req, res) => {
