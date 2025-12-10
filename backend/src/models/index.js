@@ -16,12 +16,16 @@ import DetalleProduccion from "./detalleProduccion.js";
 import Receta from "./receta.js";
 import ProductoReceta from "./productoReceta.js";
 import ConsumoExtra from "./consumoExtra.js";
+import VentaDetalle from "./detalleVenta.js";
 
 // Definir asociaciones entre modelos
 
 // Producto -> Venta (Un producto puede tener muchas ventas)
-Producto.hasMany(Venta, { foreignKey: 'id_producto' });
-Venta.belongsTo(Producto, { foreignKey: 'id_producto' });
+Producto.hasMany(VentaDetalle, { foreignKey: 'id_producto' });
+VentaDetalle.belongsTo(Producto, { foreignKey: 'id_producto' });
+
+Venta.hasMany(VentaDetalle, { foreignKey: "id_venta" });
+VentaDetalle.belongsTo(Venta, { foreignKey: "id_venta" });
 
 // MateriaPrima -> CompraMP (Una materia prima puede tener muchas compras)
 MateriaPrima.hasMany(CompraMP, { foreignKey: 'id_materiaPrima' });
@@ -95,6 +99,7 @@ Receta.hasMany(ConsumoExtra, { foreignKey: "id_receta" });
 ConsumoExtra.belongsTo(Receta, { foreignKey: "id_receta" });
 
 
+
 export {
     db,
     Usuario,
@@ -112,5 +117,6 @@ export {
     ProductoReceta,
     Produccion,
     DetalleProduccion,
-    ConsumoExtra
+    ConsumoExtra,
+    VentaDetalle
 };

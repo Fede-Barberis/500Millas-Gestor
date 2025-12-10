@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 import db from "../config/database.js";
 
-const Venta = db.define('Venta', {
+const Venta = db.define("Venta", {
     id_venta: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -9,26 +9,7 @@ const Venta = db.define('Venta', {
     },
     fecha: {
         type: DataTypes.DATEONLY,
-        allowNull: false,
-        defaultValue: DataTypes.NOW
-    },
-    id_producto: {
-        type: DataTypes.INTEGER,
         allowNull: false
-    },
-    cantidad: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        validate: {
-            min: 1
-        }
-    },
-    precio: {
-        type: DataTypes.DECIMAL(10,2),
-        allowNull: false,
-        validate: {
-            min: 0
-        }
     },
     persona: {
         type: DataTypes.STRING(100),
@@ -37,7 +18,11 @@ const Venta = db.define('Venta', {
     id_pedido: {
         type: DataTypes.INTEGER,
         allowNull: true
-    }
+    },
+    isPagado: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
 }, {
     tableName: "ventas",
     timestamps: false

@@ -7,6 +7,7 @@ import dashboardRoutes from './routes/dashboardRoutes.js';
 import produccionRoutes from './routes/produccionRoutes.js';
 import productoRoutes from './routes/productoRoutes.js'
 import materiaPrimaRoutes from './routes/materiaPrimaRoutes.js'
+import ventaRoutes from './routes/ventaRoutes.js'
 import { authenticateToken } from "./middlewares/authMiddlewares.js";
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/produccion", produccionRoutes);
 app.use("/api/producto", productoRoutes);
 app.use("/api/materiaPrima", materiaPrimaRoutes);
+app.use("/api/ventas", ventaRoutes);
 
 // Ruta de prueba protegida
 app.get("/api/me", authenticateToken, (req, res) => {
