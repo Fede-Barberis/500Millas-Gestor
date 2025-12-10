@@ -77,10 +77,20 @@ const ventaController = {
 
             // Validación final
             for (const item of productosNormalizados) {
-                if (!item.id_producto || !item.cantidad || !item.precio) {
-                    throw new Error("Los productos deben tener id_producto, cantidad y precio");
+                const productoBD = await Producto.findByPk(item.id_producto, { transaction });
+
+                if (!productoBD) {
+                    throw new Error(`El producto con ID ${item.id_producto} no existe.`);
+                }
+
+                if (Number(item.cantidad) > Number(productoBD.stock)) {
+                    throw new Error(
+                        `Stock insuficiente para ${productoBD.nombre}. ` +
+                        `Stock actual: ${productoBD.stock}, solicitado: ${item.cantidad}`
+                    );
                 }
             }
+
 
             // 1) Crear venta
             const venta = await Venta.create(
