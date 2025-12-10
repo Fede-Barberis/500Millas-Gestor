@@ -40,8 +40,8 @@ export function useDashboardData () {
                 ...(balanceData || {})
             }))
 
-            setChart(chartData || [])
-            setPieChart(pieChartData || [])
+            setChart(Array.isArray(chartData) ? chartData : [])
+            setPieChart(Array.isArray(pieChartData) ? pieChartData : [])
             setAlertas(alertasData.alertas || [])
             setPedidos(pedidosData || [])
 

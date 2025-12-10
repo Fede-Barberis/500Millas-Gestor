@@ -45,26 +45,6 @@ export default function ProduccionTable({ producciones, productos, eliminarProdu
         return lista;
     }, [producciones]);
 
-    const colorMap = useMemo(() => {
-        const map = {};
-
-        const colors = [
-            "bg-wite",
-            "bg-gray-100 bg-opacity-50",
-        ];
-
-        let i = 0;
-
-        rows.forEach(r => {
-            if (!map[r.id_produccion]) {
-                map[r.id_produccion] = colors[i % colors.length];
-                i++;
-            }
-        });
-
-        return map;
-    }, [rows]);
-
     // Filtros
     const [productoFiltro, setProductoFiltro] = useState("all");
     const [fechaDesde, setFechaDesde] = useState("");
@@ -220,7 +200,7 @@ export default function ProduccionTable({ producciones, productos, eliminarProdu
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
             
             {/* Header con título y búsqueda */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5">
+            <div className="bg-gradient-to-r from-blue-800 to-blue-500 px-6 py-5">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -349,9 +329,9 @@ export default function ProduccionTable({ producciones, productos, eliminarProdu
                             table.getRowModel().rows.map((row, index) => (
                                 <tr 
                                     key={row.id} 
-                                    className={`hover:bg-blue-50 transition-colors 
-                                        ${colorMap[row.original.id_produccion]}
-                                    `}
+                                    className={`hover:bg-blue-50 transition-colors ${
+                                        index % 2 === 0 ? 'bg-white' : 'bg-gray-100 bg-opacity-50'
+                                    }`}
                                 >
                                     {row.getVisibleCells().map(cell => (
                                         <td key={cell.id} className="px-6 py-4 whitespace-nowrap">

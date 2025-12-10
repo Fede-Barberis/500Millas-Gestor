@@ -41,25 +41,6 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
         }));
     }, [comprasMp]);
 
-    const colorMap = useMemo(() => {
-        const map = {};
-
-        const colors = [
-            "bg-wite",
-            "bg-gray-100 bg-opacity-50",
-        ];
-
-        let i = 0;
-
-        rows.forEach(r => {
-            if (!map[r.id_materiaPrima]) {
-                map[r.id_materiaPrima] = colors[i % colors.length];
-                i++;
-            }
-        });
-
-        return map;
-    }, [rows]);
 
     // Filtros
     const [mpFiltro, setMpFiltro] = useState("all");
@@ -247,15 +228,15 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
             
             {/* Header con título y búsqueda */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5">
+            <div className="bg-gradient-to-r  from-yellow-400 to-red-300 px-6 py-5">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                             <Package className="w-6 h-6" />
                             Historial de Compras
                         </h2>
-                        <p className="text-blue-100 text-sm mt-1">
-                            {filteredData.length} {filteredData.length === 1 ? 'registro' : 'registros'} encontrados
+                        <p className="text-white text-sm mt-1">
+                            {filteredData.length} {filteredData.length === 1 ? 'registro encontrado' : 'registros encontrados'} 
                         </p>
                     </div>
                     
@@ -287,7 +268,7 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
                             Insumo
                         </label>
                         <select
-                            className="font-heading border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            className="font-heading border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all"
                             value={mpFiltro}
                             onChange={e => setMpFiltro(e.target.value)}
                         >
@@ -307,7 +288,7 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
                         </label>
                         <input
                             type="date"
-                            className="font-heading border border-gray-300 p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            className="font-heading border border-gray-300 p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all"
                             value={fechaDesde}
                             onChange={e => setFechaDesde(e.target.value)}
                         />
@@ -320,7 +301,7 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
                         </label>
                         <input
                             type="date"
-                            className="font-heading border border-gray-300 p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            className="font-heading border border-gray-300 p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all"
                             value={fechaHasta}
                             onChange={e => setFechaHasta(e.target.value)}
                         />
@@ -332,7 +313,7 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
                             Estado de Pago
                         </label>
                         <select
-                            className="font-heading border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            className="font-heading border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all"
                             value={isPagado}
                             onChange={e => setIsPagado(e.target.value)}
                         >
@@ -353,7 +334,7 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
                             setIsPagado("all");
                             setSearchTerm("");
                         }}
-                        className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        className="mt-3 text-sm text-yellow-500 hover:text-yellow-600 font-medium"
                     >
                         Limpiar filtros
                     </button>
@@ -393,9 +374,9 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
                             table.getRowModel().rows.map((row, index) => (
                                 <tr 
                                     key={row.id} 
-                                    className={`hover:bg-blue-50 transition-colors 
-                                        ${colorMap[row.original.id_compra]}
-                                    `}
+                                    className={`hover:bg-blue-50 transition-colors ${
+                                        index % 2 === 0 ? 'bg-white' : 'bg-gray-100 bg-opacity-50'
+                                    }`}
                                 >
                                     {row.getVisibleCells().map(cell => (
                                         <td key={cell.id} className="px-6 py-4 whitespace-nowrap">

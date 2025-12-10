@@ -148,7 +148,7 @@ export default function ProductoCard({ producto, onDelete, onEdit, movimientos }
                             <TrendingUp className="w-4 h-4 text-blue-600" />
                             <span className="text-xs font-semibold text-blue-900">Movimiento</span>
                         </div>
-                        <p className="text-lg font-bold text-blue-700">{movimientos.movimientosTotales}</p>
+                        <p className="text-lg font-bold text-blue-700">{movimientos.movimientosTotales || 0}</p>
                         <p className="text-xs text-blue-600">Esta semana</p>
                     </div>
                     

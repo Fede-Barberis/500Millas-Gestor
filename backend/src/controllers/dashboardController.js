@@ -1,55 +1,63 @@
-import { Venta, CompraMP, DetalleEmpleado, Producto, MateriaPrima, Alerta, Pedido, DetallePedido } from "../models/index.js";
+import { Venta, VentaDetalle, CompraMP, DetalleEmpleado, Producto, MateriaPrima, Alerta, Pedido, DetallePedido } from "../models/index.js";
 import { Sequelize, Op } from "sequelize";
 
 async function calcularTotalesPorMes(inicio, fin) {
     try {
         // Total ingresos (ventas del mes)
-        const totalIngresos = await Venta.findOne({
-            attributes: [[Sequelize.literal('SUM(precio * cantidad)'), 'total']],
-            where: {
-                fecha: {
-                    [Op.between]: [inicio, fin],
-                },
-            },
+        const totalIngresos = await VentaDetalle.findOne({ 
+            attributes: [
+                [Sequelize.literal('SUM(VentaDetalle.precio * VentaDetalle.cantidad)'), 'total']
+            ],
+            include: [{
+                model: Venta, 
+                attributes: [],
+                required: true, // Asegura un INNER JOIN para el filtro
+                where: {
+                    fecha: { [Op.between]: [inicio, fin] }
+                }
+            }],
+            raw: true
         });
 
-        const ingresosVentas = parseFloat(totalIngresos?.dataValues.total || 0);
+        // Manejar resultado nulo
+        const ingresosVentas = parseFloat(totalIngresos?.total || 0);
 
-        // Gastos materia prima del mes
+
+        // Gastos materia prima
         const totalMp = await CompraMP.findOne({
             attributes: [[Sequelize.literal('SUM(precio * cantidad)'), 'total']],
-            where: {
-                fecha: {
-                    [Op.between]: [inicio, fin],
-                },
-            },
+            where: { fecha: { [Op.between]: [inicio, fin] } },
+            raw: true
         });
 
-        const gastosMp = parseFloat(totalMp?.dataValues.total || 0);
+        const gastosMp = parseFloat(totalMp?.total || 0);
 
-        // Gastos sueldos
+
+        // Sueldos empleados
         const totalSueldos = await DetalleEmpleado.findOne({
             attributes: [[Sequelize.literal('SUM(precioHora * cantHoras)'), 'totalSueldos']],
-            where: {
-                fechaCobro: {
-                    [Op.between]: [inicio, fin],
-                },
-            },
+            where: { fechaCobro: { [Op.between]: [inicio, fin] } },
+            raw: true
         });
 
-        const gastosSueldos = parseFloat(totalSueldos?.dataValues.totalSueldos || 0);
+        const gastosSueldos = parseFloat(totalSueldos?.totalSueldos || 0);
+
 
         // Totales
         const totalGastos = gastosMp + gastosSueldos;
         const balance = ingresosVentas - totalGastos;
-        const crecimiento = ingresosVentas > 0 ? ((balance / ingresosVentas) * 100).toFixed(1) : 0;
+        const crecimiento = ingresosVentas > 0
+            ? ((balance / ingresosVentas) * 100).toFixed(1)
+            : 0;
 
         return { ingresosVentas, totalGastos, balance, crecimiento };
+
     } catch (error) {
         console.error("Error en calcularTotales:", error);
         throw error;
     }
 }
+
 
 
 const dashboardController = {
@@ -106,14 +114,23 @@ const dashboardController = {
     async getDataChart(req, res) {
         try {
             // Ingresos por mes
-            const ingresosPorMes = await Venta.findAll({
+            const ingresosPorMes = await VentaDetalle.findAll({
                 attributes: [
-                    [Sequelize.fn('MONTH', Sequelize.col('fecha')), 'mes'],
-                    [Sequelize.literal('SUM(precio * cantidad)'), 'total']
+                    [Sequelize.fn('MONTH', Sequelize.col('Ventum.fecha')), 'mes'], // Referencia a la fecha en Venta
+                    [Sequelize.literal('SUM(VentaDetalle.precio * VentaDetalle.cantidad)'), 'total']
                 ],
-                group: ['mes'],
-                order: [[Sequelize.literal('mes'), 'ASC']]
+                include: [{
+                    model: Venta,
+                    attributes: [],
+                    required: true // Necesario para el filtro de fecha (aunque no está en este fragmento) y para que funcione la agrupación
+                }],
+                group: [Sequelize.fn('MONTH', Sequelize.col('Ventum.fecha'))], // Agrupar por mes de Venta
+                order: [[Sequelize.literal('mes'), 'ASC']],
+                raw: true,
+                subQuery: false
             });
+
+
 
             // Egresos por mes (materia prima)
             const egresosMP = await CompraMP.findAll({
@@ -139,13 +156,15 @@ const dashboardController = {
             const meses = Array.from({ length: 12 }, (_, i) => i + 1);
 
             const data = meses.map(mes => {
-                const ingreso = ingresosPorMes.find(i => i.dataValues.mes == mes);
-                const egresoMP = egresosMP.find(e => e.dataValues.mes == mes);
-                const egresoSueldo = egresosSueldos.find(e => e.dataValues.mes == mes);
+                // Acceder directamente a 'mes' y 'total' del objeto plano
+                const ingreso = ingresosPorMes.find(i => i.mes == mes); 
+                const egresoMP = egresosMP.find(e => e.mes == mes);
+                const egresoSueldo = egresosSueldos.find(e => e.mes == mes);
 
-                const totalIngresos = parseFloat(ingreso?.dataValues.total || 0);
-                const totalMP = parseFloat(egresoMP?.dataValues.total || 0);
-                const totalSueldos = parseFloat(egresoSueldo?.dataValues.total || 0);
+                // Acceder directamente a 'total' 
+                const totalIngresos = parseFloat(ingreso?.total || 0);
+                const totalMP = parseFloat(egresoMP?.total || 0);
+                const totalSueldos = parseFloat(egresoSueldo?.total || 0);
 
                 return {
                     mes,
@@ -195,31 +214,41 @@ const dashboardController = {
             }
 
 
-            const ventasPorProducto = await Venta.findAll({
-            attributes: [
-                'id_producto',
-                [Sequelize.fn('SUM', Sequelize.col('cantidad')), 'totalVendidos']
-            ],
-            where: {
-                [Sequelize.Op.and]: [
-                Sequelize.where(Sequelize.fn('MONTH', Sequelize.col('fecha')), mes),
-                Sequelize.where(Sequelize.fn('YEAR', Sequelize.col('fecha')), anio)
-                ]  
-            },
-            include: [
-                {
-                model: Producto,
-                attributes: ['nombre'],
-                required: false
-                }
-            ],
-            group: ['Venta.id_producto', 'Producto.id_producto'],
-            order: [[Sequelize.literal('totalVendidos'), 'DESC']]
+            const ventasPorProducto = await VentaDetalle.findAll({ // Cambiado de Venta a VentaDetalle
+                attributes: [
+                    [Sequelize.col('Producto.nombre'), 'name'], // Obtener el nombre del producto directamente
+                    [Sequelize.literal('SUM(VentaDetalle.cantidad)'), 'value']
+                ],
+                where: { // El filtro de fecha debe ir en el include de Venta
+                    // [Op.and]: [ ... ] // Se elimina el filtro here
+                },
+                include: [
+                    {
+                        model: Venta, // Incluir Venta para filtrar por fecha
+                        attributes: [],
+                        required: true,
+                        where: {
+                            [Op.and]: [
+                                Sequelize.where(Sequelize.fn('MONTH', Sequelize.col('fecha')), mes),
+                                Sequelize.where(Sequelize.fn('YEAR', Sequelize.col('fecha')), anio)
+                            ]
+                        }
+                    },
+                    {
+                        model: Producto, // Incluir Producto para obtener el nombre
+                        attributes: [],
+                        required: true,
+                    }
+                ],
+                group: ['Producto.nombre'], // Agrupar por nombre/ID del Producto
+                order: [[Sequelize.literal('value'), 'DESC']],
+                raw: true
             });
 
+            // El mapeo final se simplifica ya que los nombres de las columnas son `name` y `value`
             const data = ventasPorProducto.map(v => ({
-            name: v.Producto?.nombre || 'Desconocido',
-            value: parseFloat(v.dataValues.totalVendidos)
+                name: v.name || 'Desconocido',
+                value: parseFloat(v.value)
             }));
 
             return res.json(data);
