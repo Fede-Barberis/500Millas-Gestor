@@ -54,21 +54,6 @@ export default function Sidebar({ isOpen }) {
 
 
                 <NavLink
-                    to="/produccion"
-                    className={({ isActive }) =>
-                        `flex w-full gap-3 p-2 rounded-md transition-colors duration-300 
-                        ${isHovered ? "justify-start" : "justify-center"} 
-                        ${isActive ? "bg-sidebar font-semibold" : "hover:bg-sidebar hover:bg-opacity-60"}`
-                    }
-                >
-                    <CirclePlus size={20} strokeWidth={1.5} />
-                    {isHovered && <span className={`
-                    whitespace-nowrap overflow-hidden transition-all duration-300
-                    ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
-                    `}>Produccion</span>}
-                </NavLink>
-
-                <NavLink
                     to="/productos"
                     className={({ isActive }) =>
                         `flex w-full gap-3 p-2 rounded-md transition-colors duration-300 
@@ -81,6 +66,22 @@ export default function Sidebar({ isOpen }) {
                     whitespace-nowrap overflow-hidden transition-all duration-300
                     ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
                     `}>Productos</span>}
+                </NavLink>
+                
+
+                <NavLink
+                    to="/produccion"
+                    className={({ isActive }) =>
+                        `flex w-full gap-3 p-2 rounded-md transition-colors duration-300 
+                        ${isHovered ? "justify-start" : "justify-center"} 
+                        ${isActive ? "bg-sidebar font-semibold" : "hover:bg-sidebar hover:bg-opacity-60"}`
+                    }
+                >
+                    <CirclePlus size={20} strokeWidth={1.5} />
+                    {isHovered && <span className={`
+                    whitespace-nowrap overflow-hidden transition-all duration-300
+                    ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
+                    `}>Produccion</span>}
                 </NavLink>
 
 
