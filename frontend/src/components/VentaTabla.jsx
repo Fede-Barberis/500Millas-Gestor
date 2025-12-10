@@ -1,0 +1,388 @@
+import { useReactTable, getCoreRowModel, flexRender, createColumnHelper } from "@tanstack/react-table";
+import { Package, Search, Filter, Calendar, Edit2, Trash2, Handshake, HandCoins } from "lucide-react";
+import { useState, useMemo } from "react";
+import ConfirmModal from "./ModalConfirmacion";
+
+export default function VentaTable({ ventas, productos, eliminarVenta, editarVenta }) {
+    const [modalOpen, setModalOpen] = useState(false);
+    const [idAEliminar, setIdAEliminar] = useState(null);
+
+    const abrirModal = (id) => {
+        setIdAEliminar(id);
+        setModalOpen(true);
+    };
+
+    const confirmarEliminacion = async () => {
+        await eliminarVenta(idAEliminar);
+        setModalOpen(false);
+        setIdAEliminar(null);
+    };
+
+    const columnHelper = createColumnHelper();
+
+    // ----------------------------------------
+    // NORMALIZAR VENTAS CON MULTIPLES PRODUCTOS
+    // ----------------------------------------
+    const rows = useMemo(() => {
+        const lista = [];
+        ventas.forEach(v => {
+            v.VentaDetalles?.forEach(d => {
+                lista.push({
+                    id_venta: v.id_venta,
+                    fecha: v.fecha,
+                    producto: d.Producto?.nombre,
+                    cantidad: d.cantidad,
+                    precio: d.precio,
+                    total: d.precio * d.cantidad,
+                    persona: v.persona,
+                    id_pedido: v.id_pedido,
+                    isPagado: v.isPagado
+                });
+            });
+        });
+        return lista;
+    }, [ventas]);
+
+
+    // -------------------------
+    // FILTROS
+    // -------------------------
+    // Filtros
+    const [vFiltro, setvFiltro] = useState("all");
+    const [fechaDesde, setFechaDesde] = useState("");
+    const [fechaHasta, setFechaHasta] = useState("");
+    const [isPagado, setIsPagado] = useState("all");
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredData = useMemo(() => {
+        return rows.filter(item => {
+            // Filtro por producto
+            if (vFiltro !== "all" && item.producto !== vFiltro)
+                return false;
+
+            // Filtro por búsqueda (cliente o id_pedido)
+            if (
+                searchTerm &&
+                !(item.persona ?? "").toLowerCase().includes(searchTerm.toLowerCase()) &&
+                !(String(item.id_pedido ?? "")).includes(searchTerm)
+            ) {
+                return false;
+            }
+
+            // Filtro por fecha desde
+            if (fechaDesde && item.fecha < fechaDesde)
+                return false;
+
+            // Filtro por fecha hasta
+            if (fechaHasta && item.fecha > fechaHasta)
+                return false;
+
+            // --- Filtro por estado de pago (robusto ante boolean/num/string) ---
+            if (isPagado !== "all") {
+            const seleccionadoEsPagado = isPagado === "1" || isPagado === "true";
+            const itemEsPagado = Boolean(
+                typeof item.isPagado === "string" ? Number(item.isPagado) : item.isPagado
+            );
+
+            if (itemEsPagado !== seleccionadoEsPagado) return false;
+            }
+
+            return true;
+        });
+    }, [rows, vFiltro, fechaDesde, fechaHasta, isPagado, searchTerm]);
+
+    // ----------------------------------------
+    // COLUMNAS CORREGIDAS
+    // ----------------------------------------
+    // Columnas
+    const columns = [
+        columnHelper.accessor("id_venta", {
+            header: "ID",
+            cell: info => (
+                <div className="flex items-center gap-2">
+                    <span className="font-medium">{info.getValue()}</span>
+                </div>
+            )
+        }),
+        columnHelper.accessor("fecha", {
+            header: "Fecha Venta",
+            cell: info => {
+                const fechaStr = info.getValue();
+                const [year, month, day] = fechaStr.split('-');
+                const fecha = new Date(year, month - 1, day); // Crear fecha local
+
+                return (
+                    <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span className="font-normal">{fecha.toLocaleDateString('es-ES')}</span>
+                    </div>
+                )
+            }
+        }),
+        columnHelper.accessor("producto", {
+            header: "Producto",
+            cell: info => (
+                <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-blue-500" />
+                    <span className="font-semibold text-gray-800">{info.getValue()}</span>
+                </div>
+            )
+        }),
+        columnHelper.accessor("cantidad", {
+            header: "Cantidad",
+            cell: info => {
+                // Redondear o formatear sin decimales si es un número entero
+                const cantidad = parseFloat(info.getValue());
+                const cantidadFormateada = cantidad % 1 === 0 
+                    ? cantidad.toFixed(0)  // Sin decimales si es entero
+                    : cantidad.toFixed(2); // Con 2 decimales si tiene decimales
+                
+                return (
+                    <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+                        {cantidadFormateada}
+                    </span>
+                );
+            }
+        }),
+        columnHelper.accessor("precio", {
+            header: "Precio",
+            cell: info => (
+                <span className="font-mono text-sm bg-yellow-100 px-2 py-1 rounded">
+                    {info.getValue()}
+                </span>
+            )
+        }),
+        columnHelper.accessor("total", {
+            header: "Total",
+            cell: info => (
+                <span className="font-mono text-sm bg-orange-100 px-2 py-1 rounded">
+                    {info.getValue()}
+                </span>
+            )
+        }),
+        columnHelper.accessor("persona", {
+            header: "Cliente",
+            cell: info => (
+                <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                    {info.getValue()}
+                </span>
+            )
+        }),
+        columnHelper.accessor("isPagado", {
+            header: "Estado",
+            cell: info => (
+                <span className={`font-mono text-sm  ${info.getValue() ? "bg-green-100" : "bg-red-100"} px-2 py-1 rounded`}>
+                    {info.getValue() ? "Pagado" : "Pendiente"}
+                </span>
+            )
+        }),
+        columnHelper.accessor("id_pedido", {
+            header: "Pedido",
+            cell: info => (
+                <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                    {info.getValue() || "-"}
+                </span>
+            )
+        }),
+        columnHelper.accessor("acciones", {
+            header: "Acciones",
+            cell: info => {
+                const ventaCompleta = ventas.find(
+                    v => v.id_venta === info.row.original.id_venta
+                );
+
+                return (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => editarVenta(ventaCompleta)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Editar"
+                        >
+                            <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                            onClick={() => abrirModal(info.row.original.id_venta)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Eliminar"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    </div>
+                )
+            }
+        })
+    ];
+
+    const table = useReactTable({
+        data: filteredData,
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+    });
+    
+
+    return (
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            {/* HEADER */}
+            <div className="bg-gradient-to-r from-emerald-500 to-green-400 px-6 py-5">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                            <Handshake className="w-6 h-6" />
+                            Registro de Ventas
+                        </h2>
+                        <p className="text-green-100 text-sm mt-1">
+                            {filteredData.length} {filteredData.length === 1 ? 'registro' : 'registros'} encontrados
+                        </p>
+                    </div>
+
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por cliente..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 pr-4 py-2 rounded-lg w-full md:w-80"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Filtros */}
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <div className="flex items-center gap-2 mb-3">
+                    <Filter className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm font-semibold text-gray-700">Filtros</span>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+                    {/* Filtro por Producto */}
+                    <div>
+                        <label className="block mb-1.5 text-sm font-medium text-gray-700">
+                            Insumo
+                        </label>
+                        <select
+                            className="font-heading border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                            value={vFiltro}
+                            onChange={e => setvFiltro(e.target.value)}
+                        >
+                            <option value="all">Todos los insumos</option>
+                            {productos.map(p => (
+                                <option key={p.id_producto} value={p.nombre}>
+                                    {p.nombre}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Filtro Fecha Desde */}
+                    <div>
+                        <label className="block mb-1.5 text-sm font-medium text-gray-700">
+                            Fecha desde
+                        </label>
+                        <input
+                            type="date"
+                            className="font-heading border border-gray-300 p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                            value={fechaDesde}
+                            onChange={e => setFechaDesde(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Filtro Fecha Hasta */}
+                    <div>
+                        <label className="block mb-1.5 text-sm font-medium text-gray-700">
+                            Fecha hasta
+                        </label>
+                        <input
+                            type="date"
+                            className="font-heading border border-gray-300 p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                            value={fechaHasta}
+                            onChange={e => setFechaHasta(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Filtro estado de pago */}
+                    <div>
+                        <label className="block mb-1.5 text-sm font-medium text-gray-700">
+                            Estado de Pago
+                        </label>
+                        <select
+                            className="font-heading border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                            value={isPagado}
+                            onChange={e => setIsPagado(e.target.value)}
+                        >
+                            <option value="all">Todos</option>
+                            <option value="1">Pagado</option>
+                            <option value="0">Pendiente</option>
+                        </select>
+                    </div>
+                </div>
+
+                {/* Botón limpiar filtros */}
+                {(vFiltro !== "all" || fechaDesde || fechaHasta || isPagado !=="all" || searchTerm) && (
+                    <button
+                        onClick={() => {
+                            setvFiltro("all");
+                            setFechaDesde("");
+                            setFechaHasta("");
+                            setIsPagado("all");
+                            setSearchTerm("");
+                        }}
+                        className="mt-3 text-sm text-green-500 hover:text-green-600 font-medium"
+                    >
+                        Limpiar filtros
+                    </button>
+                )}
+            </div>
+
+            {/* TABLA */}
+            <div className="overflow-x-auto">
+                <table className="w-full">
+                    <thead>
+                        {table.getHeaderGroups().map((hg) => (
+                            <tr key={hg.id} className="bg-gray-100">
+                                {hg.headers.map((header) => (
+                                    <th key={header.id} className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                    </th>
+                                ))}
+                            </tr>
+                        ))}
+                    </thead>
+
+                    <tbody>
+                        {table.getRowModel().rows.length === 0 ? (
+                            <tr>
+                                <td colSpan={columns.length} className="px-6 py-12 text-center text-gray-500">
+                                    <HandCoins className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                    <p className="text-lg font-medium">No hay ventas registradas</p>
+                                </td>
+                            </tr>
+                        ) : (
+                            table.getRowModel().rows.map((row, index) => (
+                                <tr key={row.id} 
+                                    className={`hover:bg-green-50 transition-colors ${
+                                        index % 2 === 0 ? 'bg-white' : 'bg-gray-100 bg-opacity-50'
+                                    }`}>
+                                    {row.getVisibleCells().map((cell) => (
+                                        <td key={cell.id} className="px-6 py-4">
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            <ConfirmModal
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+                onConfirm={confirmarEliminacion}
+                title="Confirmar eliminación"
+                message="¿Seguro que deseas eliminar esta venta?"
+            />
+        </div>
+    );
+}
