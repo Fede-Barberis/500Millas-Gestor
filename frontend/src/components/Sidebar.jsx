@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, Package, Wheat, LogOut, Handshake, CalendarCheck2, CirclePlus } from "lucide-react"; 
+import { Home, Package, Wheat, LogOut, Handshake, CalendarCheck2, CirclePlus, X } from "lucide-react"; 
 import { useAuth } from "../context/AuthContext";
 
-export default function Sidebar({ isOpen }) {
+export default function Sidebar({ isOpen, toggleSidebar }) {
     const navigate = useNavigate()
     const [isHovered, setIsHovered] = useState(false);
     const { logout } = useAuth();
@@ -13,139 +13,211 @@ export default function Sidebar({ isOpen }) {
         navigate("/login");
     };
 
+    const handleLinkClick = () => {
+        if (window.innerWidth < 768) {
+            toggleSidebar();
+        }
+    };
+
     return (
-        <aside
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            className={`
-                fixed top-0 left-0 h-full 
-                flex flex-col justify-between
-                
-                bg-white
-                text-black shadow-lg
-                transition-all duration-300 linear z-40 
-                ${isHovered ? "w-56" : "w-20"} 
-                ${isOpen ? "translate-x-0" : "-translate-x-full"} 
-                md:translate-x-0
-            `}
-        >
-            {/* 🔝 Sección superior - enlaces */}
-            <div className={`flex flex-col mt-6 space-y-10 px-4 transition-all duration-300`}>
-                <div className={`${isHovered ? "flex flex-row justify-center gap-1 border-b border-black" : "inline"}`}>
-                    <span className="text-2xl text-center font-heading text-black font-bold">500</span> 
-                    <h1 className={`${isHovered ? "text-2xl font-semibold" : "text-xl"} font-heading text-yellow-500`}> Millas</h1>
+        <>
+            {/* Overlay oscuro para mobile */}
+            {isOpen && (
+                <div
+                    onClick={toggleSidebar}
+                    className="fixed inset-0 bg-black/50 z-30 md:hidden transition-opacity duration-300"
+                />
+            )}
+
+            <aside
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                className={`
+                    fixed top-0 left-0 h-full 
+                    flex flex-col justify-between
+                    bg-white text-black shadow-2xl
+                    transition-all duration-300 ease-in-out z-40
+                    
+                    ${isOpen ? "translate-x-0" : "-translate-x-full"}
+                    w-64
+                    
+                    md:translate-x-0
+                    md:${isHovered ? "w-64" : "w-20"}
+                `}
+            >
+                {/* Botón cerrar (solo mobile cuando está abierto) */}
+                {isOpen && (
+                    <button
+                        onClick={toggleSidebar}
+                        className="md:hidden absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                        <X size={24} className="text-gray-600" />
+                    </button>
+                )}
+
+                {/* 🔝 Header del sidebar */}
+                <div className="mt-6 px-4 pb-4 border-b border-gray-200">
+                    <div className="flex items-center gap-2 justify-center">
+                        <span className="text-2xl font-heading text-black font-bold">500</span>
+                        <h1 className={`
+                            text-2xl font-heading text-yellow-500 font-semibold
+                            transition-all duration-300
+                            ${isHovered ? "md:opacity-100 md:w-auto" : "md:opacity-0 md:w-0 md:overflow-hidden"}
+                        `}>
+                            Millas
+                        </h1>
+                    </div>
                 </div>
 
+                {/* 🔝 Sección de navegación */}
+                <nav className="flex-1 flex flex-col gap-5 mt-6 px-3 overflow-y-auto">
+                    <NavLink
+                        to="/dashboard"
+                        onClick={handleLinkClick}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 p-3 rounded-lg transition-all duration-200
+                            ${isActive 
+                                ? "bg-yellow-100 text-yellow-700 font-semibold shadow-sm" 
+                                : "text-gray-700 hover:bg-gray-100"
+                            }
+                            ${isHovered ? "md:justify-start" : "md:justify-center"}`
+                        }
+                    >
+                        <Home size={22} className="flex-shrink-0" />
+                        <span className={`
+                            whitespace-nowrap transition-all duration-200
+                            ${isHovered ? "md:opacity-100 md:block" : "md:opacity-0 md:hidden"}
+                        `}>
+                            Inicio
+                        </span>
+                    </NavLink>
 
-                <NavLink
-                    to="/dashboard"
-                    className={({ isActive }) =>
-                        `flex w-full gap-3 p-2 rounded-md transition-colors duration-300 
-                        ${isHovered ? "justify-start" : "justify-center"} 
-                        ${isActive ? "bg-sidebar font-semibold" : "hover:bg-sidebar hover:bg-opacity-60"}`
-                    }
-                >
-                    <Home size={20} />
-                    {isHovered && <span className={`
-                    whitespace-nowrap overflow-hidden transition-all duration-100
-                    ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
-                    `}>Inicio</span>}
-                </NavLink>
+                    <NavLink
+                        to="/productos"
+                        onClick={handleLinkClick}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 p-3 rounded-lg transition-all duration-200
+                            ${isActive 
+                                ? "bg-yellow-100 text-yellow-700 font-semibold shadow-sm" 
+                                : "text-gray-700 hover:bg-gray-100"
+                            }
+                            ${isHovered ? "md:justify-start" : "md:justify-center"}`
+                        }
+                    >
+                        <Package size={22} className="flex-shrink-0" strokeWidth={1.5} />
+                        <span className={`
+                            whitespace-nowrap transition-all duration-200
+                            ${isHovered ? "md:opacity-100 md:block" : "md:opacity-0 md:hidden"}
+                        `}>
+                            Productos
+                        </span>
+                    </NavLink>
 
+                    <NavLink
+                        to="/produccion"
+                        onClick={handleLinkClick}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 p-3 rounded-lg transition-all duration-200
+                            ${isActive 
+                                ? "bg-yellow-100 text-yellow-700 font-semibold shadow-sm" 
+                                : "text-gray-700 hover:bg-gray-100"
+                            }
+                            ${isHovered ? "md:justify-start" : "md:justify-center"}`
+                        }
+                    >
+                        <CirclePlus size={22} className="flex-shrink-0" strokeWidth={1.5} />
+                        <span className={`
+                            whitespace-nowrap transition-all duration-200
+                            ${isHovered ? "md:opacity-100 md:block" : "md:opacity-0 md:hidden"}
+                        `}>
+                            Producción
+                        </span>
+                    </NavLink>
 
-                <NavLink
-                    to="/productos"
-                    className={({ isActive }) =>
-                        `flex w-full gap-3 p-2 rounded-md transition-colors duration-300 
-                        ${isHovered ? "justify-start" : "justify-center"} 
-                        ${isActive ? "bg-sidebar font-semibold" : "hover:bg-sidebar hover:bg-opacity-60"}`
-                    }
-                >
-                    <Package size={20} strokeWidth={1.5} />
-                    {isHovered && <span className={`
-                    whitespace-nowrap overflow-hidden transition-all duration-300
-                    ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
-                    `}>Productos</span>}
-                </NavLink>
-                
+                    <NavLink
+                        to="/materiaPrima"
+                        onClick={handleLinkClick}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 p-3 rounded-lg transition-all duration-200
+                            ${isActive 
+                                ? "bg-yellow-100 text-yellow-700 font-semibold shadow-sm" 
+                                : "text-gray-700 hover:bg-gray-100"
+                            }
+                            ${isHovered ? "md:justify-start" : "md:justify-center"}`
+                        }
+                    >
+                        <Wheat size={22} className="flex-shrink-0" strokeWidth={1.5} />
+                        <span className={`
+                            whitespace-nowrap transition-all duration-200
+                            ${isHovered ? "md:opacity-100 md:block" : "md:opacity-0 md:hidden"}
+                        `}>
+                            Materias Primas
+                        </span>
+                    </NavLink>
 
-                <NavLink
-                    to="/produccion"
-                    className={({ isActive }) =>
-                        `flex w-full gap-3 p-2 rounded-md transition-colors duration-300 
-                        ${isHovered ? "justify-start" : "justify-center"} 
-                        ${isActive ? "bg-sidebar font-semibold" : "hover:bg-sidebar hover:bg-opacity-60"}`
-                    }
-                >
-                    <CirclePlus size={20} strokeWidth={1.5} />
-                    {isHovered && <span className={`
-                    whitespace-nowrap overflow-hidden transition-all duration-300
-                    ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
-                    `}>Produccion</span>}
-                </NavLink>
+                    <NavLink
+                        to="/ventas"
+                        onClick={handleLinkClick}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 p-3 rounded-lg transition-all duration-200
+                            ${isActive 
+                                ? "bg-yellow-100 text-yellow-700 font-semibold shadow-sm" 
+                                : "text-gray-700 hover:bg-gray-100"
+                            }
+                            ${isHovered ? "md:justify-start" : "md:justify-center"}`
+                        }
+                    >
+                        <Handshake size={22} className="flex-shrink-0" strokeWidth={1.5} />
+                        <span className={`
+                            whitespace-nowrap transition-all duration-200
+                            ${isHovered ? "md:opacity-100 md:block" : "md:opacity-0 md:hidden"}
+                        `}>
+                            Ventas
+                        </span>
+                    </NavLink>
 
+                    <NavLink
+                        to="/pedidos"
+                        onClick={handleLinkClick}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 p-3 rounded-lg transition-all duration-200
+                            ${isActive 
+                                ? "bg-yellow-100 text-yellow-700 font-semibold shadow-sm" 
+                                : "text-gray-700 hover:bg-gray-100"
+                            }
+                            ${isHovered ? "md:justify-start" : "md:justify-center"}`
+                        }
+                    >
+                        <CalendarCheck2 size={22} className="flex-shrink-0" strokeWidth={1.5} />
+                        <span className={`
+                            whitespace-nowrap transition-all duration-200
+                            ${isHovered ? "md:opacity-100 md:block" : "md:opacity-0 md:hidden"}
+                        `}>
+                            Pedidos
+                        </span>
+                    </NavLink>
+                </nav>
 
-                <NavLink
-                    to="/materiaPrima"
-                    className={({ isActive }) =>
-                        `flex w-full gap-3 p-2 rounded-md transition-colors duration-300 
-                        ${isHovered ? "justify-start" : "justify-center"} 
-                        ${isActive ? "bg-sidebar font-semibold" : "hover:bg-sidebar hover:bg-opacity-60"}`
-                    }
-                >
-                    <Wheat size={20} strokeWidth={1.5} />
-                    {isHovered && <span className={`
-                    whitespace-nowrap overflow-hidden transition-all duration-300
-                    ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
-                    `}>Materias Primas</span>}
-                </NavLink>
-
-
-                <NavLink
-                    to="/ventas"
-                    className={({ isActive }) =>
-                        `flex w-full gap-3 p-2 rounded-md transition-colors duration-300 
-                        ${isHovered ? "justify-start" : "justify-center"} 
-                        ${isActive ? "bg-sidebar font-semibold" : "hover:bg-sidebar hover:bg-opacity-60"}`
-                    }
-                >
-                    <Handshake size={20} strokeWidth={1.5} />
-                    {isHovered && <span className={`
-                    whitespace-nowrap overflow-hidden transition-all duration-300
-                    ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
-                    `}>Ventas</span>}
-                </NavLink>
-
-
-                <NavLink
-                    to="/pedidos"
-                    className={({ isActive }) =>
-                        `flex w-full gap-3 p-2 rounded-md transition-colors duration-300 
-                        ${isHovered ? "justify-start" : "justify-center"} 
-                        ${isActive ? "bg-sidebar font-semibold" : "hover:bg-sidebar hover:bg-opacity-60"}`
-                    }
-                >
-                    <CalendarCheck2 size={20} strokeWidth={1.5} />
-                    {isHovered && <span className={`
-                    whitespace-nowrap overflow-hidden transition-all duration-300
-                    ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
-                    `}>Pedidos</span>}
-                </NavLink>
-            </div>
-
-            {/* 🔚 Logout fijo al fondo */}
-            <div className="mb-6 flex items-center px-4">
-                <button
-                onClick={handleLogout}
-                className={`flex ${isHovered ? "justify-start" : "justify-center"} w-full gap-3 p-2 rounded-md hover:bg-danger hover:bg-opacity-50 transition`}
-                >
-                <LogOut size={20} />
-                {isHovered && <span className={`
-                whitespace-nowrap overflow-hidden transition-all duration-300
-                ${isHovered ? "opacity-100 ml-2" : "opacity-0 w-0"}
-            `}>Salir</span>}
-                </button>
-            </div>
-        </aside>
+                {/* 🔚 Logout al fondo */}
+                <div className="p-3 border-t border-gray-200">
+                    <button
+                        onClick={handleLogout}
+                        className={`
+                            flex items-center gap-3 p-3 rounded-lg w-full
+                            text-red-600 hover:bg-red-50 transition-all duration-200
+                            ${isHovered ? "md:justify-start" : "md:justify-center"}
+                        `}
+                    >
+                        <LogOut size={22} className="flex-shrink-0" />
+                        <span className={`
+                            whitespace-nowrap transition-all duration-200
+                            ${isHovered ? "md:opacity-100 md:block" : "md:opacity-0 md:hidden"}
+                        `}>
+                            Salir
+                        </span>
+                    </button>
+                </div>
+            </aside>
+        </>
     );
 }
