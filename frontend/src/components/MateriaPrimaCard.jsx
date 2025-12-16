@@ -15,7 +15,7 @@ export default function MateriaPrimaCard({ materiaPrima }) {
         "grasa": grasa,
         "sal": sal,
         "azucar": azucar,
-        "d. de leche": dulceDeLeche,
+        "dulce de leche": dulceDeLeche,
     };
 
     // Obtener imagen basado en el nombre
