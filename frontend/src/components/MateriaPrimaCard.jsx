@@ -1,9 +1,9 @@
 import { AlertTriangle } from "lucide-react";
 import huevos from "/assets/img/huevo.webp"
-import harina from "/assets/img/harina.jpeg"
-import azucar from "/assets/img/azucar.jpg"
+import harina from "/assets/img/harina.webp"
+import azucar from "/assets/img/azucar.webp"
 import grasa from "/assets/img/grasa.webp"
-import sal from "/assets/img/sal.jpeg"
+import sal from "/assets/img/sal.webp"
 import dulceDeLeche from "/assets/img/dulce_de_leche.webp"
 
 export default function MateriaPrimaCard({ materiaPrima }) {
@@ -13,9 +13,9 @@ export default function MateriaPrimaCard({ materiaPrima }) {
         "harina": harina,
         "huevo": huevos,
         "grasa": grasa,
+        "dulce de leche": dulceDeLeche,
         "sal": sal,
         "azucar": azucar,
-        "dulce de leche": dulceDeLeche,
     };
 
     // Obtener imagen basado en el nombre
