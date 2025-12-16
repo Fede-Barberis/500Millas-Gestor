@@ -1,8 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { getDataChart, getPieChart, getStats, getAlertas, marcarAlertasLeidas, getPedidos, getDetallePedido } from "../api/dashboardApi";
+import {
+    getDataChart,
+    getPieChart,
+    getStats,
+    getAlertas,
+    getPedidos,
+    getDetallePedido
+} from "../api/dashboardApi";
 
-export function useDashboardData () {
-    const [balance, setBalance]= useState({
+    export function useDashboardData() {
+    // ===============================
+    // Estados principales
+    // ===============================
+    const [balance, setBalance] = useState({
         total_ingresos: 0,
         total_gastos: 0,
         crecimiento: 0,
@@ -15,7 +25,7 @@ export function useDashboardData () {
     const [mes, setMes] = useState(new Date().getMonth() + 1);
     const [anio, setAnio] = useState(new Date().getFullYear());
 
-    const [alertas, setAlertas] = useState([])
+    const [alertas, setAlertas] = useState([]);
     const [filtro, setFiltro] = useState("all");
 
     const [pedidos, setPedidos] = useState([]);
@@ -24,32 +34,38 @@ export function useDashboardData () {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-
+    // ===============================
+    // Fetch principal
+    // ===============================
     const fetchData = useCallback(async () => {
         try {
-            const [balanceData, chartData, pieChartData, alertasData, pedidosData] = await Promise.all([
-                getStats(),
-                getDataChart(),
-                getPieChart(mes, anio),
-                getAlertas(),
-                getPedidos()
-            ])
+        setLoading(true);
 
-            setBalance(prevBalance => ({
-                ...prevBalance,
-                ...(balanceData || {})
-            }))
+        const [
+            balanceData,
+            chartData,
+            pieChartData,
+            alertasData,
+            pedidosData
+        ] = await Promise.all([
+            getStats(),
+            getDataChart(),
+            getPieChart(mes, anio),
+            getAlertas(),
+            getPedidos()
+        ]);
 
-            setChart(Array.isArray(chartData) ? chartData : [])
-            setPieChart(Array.isArray(pieChartData) ? pieChartData : [])
-            setAlertas(alertasData.alertas || [])
-            setPedidos(pedidosData || [])
+        setBalance(prev => ({ ...prev, ...(balanceData || {}) }));
+        setChart(Array.isArray(chartData) ? chartData : []);
+        setPieChart(Array.isArray(pieChartData) ? pieChartData : []);
+        setAlertas(alertasData?.alertas || []);
+        setPedidos(pedidosData || []);
 
-        } catch (error) {
-            console.log(error);
-            setError("Error al cargar los datos del dashboard")
+        } catch (err) {
+        console.error(err);
+        setError("Error al cargar los datos del dashboard");
         } finally {
-            setLoading(false)
+        setLoading(false);
         }
     }, [mes, anio]);
 
@@ -58,81 +74,61 @@ export function useDashboardData () {
         fetchData()
     }, [fetchData])
 
-
-    // MARCAR ALERTA COMO LEÍDA
-    const toggleCheck = async (id_alerta) => {
-        // marcar visualmente
-        setAlertas(prev =>
-            prev.map(a =>
-                a.id_alerta === id_alerta ? { ...a, checked: true } : a
-            )
-        );
-
+    useEffect(() => {
+        const interval = setInterval(async () => {
         try {
-            await marcarAlertasLeidas(id_alerta);
-
-            // eliminar 1 segundo después
-            setTimeout(() => {
-                setAlertas(prev =>
-                    prev.filter(a => a.id_alerta !== id_alerta)
-                );
-            }, 1000);
-
-        } catch (err) {
-            console.error("Error al marcar alerta:", err);
-
-            // revertir check
-            setAlertas(prev =>
-                prev.map(a =>
-                    a.id_alerta === id_alerta ? { ...a, checked: false } : a
-                )
-            );
+            const alertasData = await getAlertas();
+            setAlertas(alertasData?.alertas || []);
+        } catch (e) {
+            console.error("Error al refrescar alertas", e);
         }
-    };
+        }, 30000); // 30s
 
+        return () => clearInterval(interval);
+    }, []);
 
     const alertasFiltradas = useMemo(() => {
         if (filtro === "all") return alertas;
-        return alertas.filter(a => a.nivel === filtro);
+        return alertas.filter(a => a.tipo === filtro || a.nivel === filtro);
     }, [alertas, filtro]);
 
-
-    // FUNCION PARA CARGAR EL DETALLE DEL PEDIDO CUANDO SE PRESIONA EN EL CALENDARIO
-    const seleccionarPedido = async (id_pedido) => {
+    const seleccionarPedido = async (ids) => {
         try {
-            const detalles = await Promise.all(
-                id_pedido.map(id_pedido => getDetallePedido(id_pedido))
+            if (!Array.isArray(ids) || ids.length === 0) return;
+
+            const pedidosCompletos = await Promise.all(
+            ids.map(id => getDetallePedido(id))
             );
-            setDetallePedido(detalles);  
-        } catch (err) {
-            console.error("Error al cargar detalles de pedidos:", err);
+
+            setDetallePedido(pedidosCompletos);
+        } catch (error) {
+            console.error("Error al obtener detalle del pedido", error);
         }
     };
 
-
     // Lo que devuelve el hook
-    return { 
-        balance, 
-        chart, 
-        pieChart, 
+    return {
+        balance,
+        chart,
+        pieChart,
+
         mes,
         anio,
-        setMes, 
+        setMes,
         setAnio,
-        
-        loading, 
-        error, 
-        fetchData,
 
         alertas: alertasFiltradas,
-        toggleCheck,  
-        
+        totalAlertas: alertas.length,
         filtro,
         setFiltro,
-        
+
         pedidos,
         detallePedido,
+        seleccionarPedido,
         setDetallePedido,
-        seleccionarPedido
+
+        loading,
+        error,
+        fetchData
     };
 }

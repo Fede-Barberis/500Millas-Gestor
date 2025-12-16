@@ -4,7 +4,7 @@ export default function StatsCards({ balance }) {
     return (
         <>
         {/* INGRESOS */}
-        <div className="bg-gradient-to-br from-emerald-500 to-green-400 p-5 rounded-2xl shadow-xl flex flex-col justify-between">
+        <div className="bg-gradient-to-br from-emerald-600 via-green-400 to-green-300 p-5 rounded-2xl shadow-xl flex flex-col justify-between">
             <div className="flex items-center justify-between">
                 <h2 className="text-white text-sm font-semibold tracking-wide">Ingresos</h2>
                 <ArrowUpRight size={24} className="text-white opacity-90" />
@@ -23,7 +23,7 @@ export default function StatsCards({ balance }) {
         </div>
 
         {/* EGRESOS */}
-        <div className="bg-gradient-to-br from-rose-500 to-red-400 p-5 rounded-2xl shadow-xl flex flex-col justify-between">
+        <div className="bg-gradient-to-br from-rose-600 via-red-400 to-red-300 p-5 rounded-2xl shadow-xl flex flex-col justify-between">
             <div className="flex items-center justify-between">
                 <h2 className="text-white text-sm font-semibold tracking-wide">Egresos</h2>
                 <ArrowDownRight size={24} className="text-white opacity-90" />

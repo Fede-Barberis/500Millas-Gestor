@@ -211,7 +211,7 @@ export default function ProduccionForm({ recetas = [], productos = [], onCreated
                                 {fields.map((field, index) => (
                                 <div
                                     key={field.id}
-                                    className="border border-gray-200 rounded-xl p-5 bg-gradient-to-br from-gray-50 to-white shadow-sm hover:shadow-md transition-shadow"
+                                    className="border border-gray-200 rounded-xl p-5 bg-gradient-to-br from-gray-50 to-white hover:border-blue-500 shadow-sm hover:shadow-md transition-all duration-300"
                                 >
                                     <div className="flex items-center justify-between mb-4">
                                         <span className="text-sm font-semibold text-gray-700">

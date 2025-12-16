@@ -370,25 +370,6 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
 
                         {/* Campos opcionales */}
                         <div className="space-y-4 pt-4 border-t-2 border-gray-200">
-                            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                                Información Adicional (Opcional)
-                            </h3>
-
-                            {/* ID Pedido */}
-                            <div className="space-y-2">
-                                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                                    <Hash className="w-4 h-4 text-gray-500" />
-                                    ID de Pedido
-                                    <span className="text-xs text-gray-500 font-normal">(opcional)</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    {...register("id_pedido")}
-                                    placeholder="Ej: PED-2024-001"
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all placeholder:text-gray-400"
-                                />
-                            </div>
-
                             {/* Estado de Pago */}
                             <div className="space-y-3">
                                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">

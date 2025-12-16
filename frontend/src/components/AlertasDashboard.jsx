@@ -1,7 +1,7 @@
 import FiltrosAlertas from "./FiltroNivelAlerta";
 import { CircleAlert, AlertTriangle, CircleCheckIcon, Hourglass } from "lucide-react";
 
-export default function AlertasDashboard({ alertas, toggleCheck, filtro, setFiltro }) {
+export default function AlertasDashboard({ alertas, filtro, setFiltro }) {
     const iconMap = {
         warning: CircleAlert,
         danger: AlertTriangle,
@@ -55,20 +55,12 @@ export default function AlertasDashboard({ alertas, toggleCheck, filtro, setFilt
                         const Icon = iconMap[alerta.nivel];
                         return (
                             <li
-                                key={alerta.id_alerta}
-                                className={`p-3 rounded-lg border flex items-center gap-2 transition-all duration-300 ${stylesMap[alerta.nivel] || ""}`}
+                                key={alerta.id}
+                                className={`px-1 py-3 rounded-lg border flex items-center gap-3 transition-all duration-300 ${stylesMap[alerta.nivel] || ""}`}
                             >
-                                <input
-                                    type="checkbox"
-                                    checked={alerta.checked}
-                                    onChange={() => toggleCheck(alerta.id_alerta)}
-                                    disabled={alerta.checked}
-                                    className="w-4 h-4 accent-amber-500 cursor-pointer"
-                                />
-
                                 {Icon && (
                                     <Icon
-                                        className={`w-5 h-5 ml-3 mr-1.5 hidden sm:block flex-shrink-0 ${iconMap[alerta.nivel] || ""}`}
+                                        className={`w-5 h-5 ml-2 hidden sm:block flex-shrink-0 ${iconMap[alerta.nivel] || ""}`}
                                     />
                                 )}
 

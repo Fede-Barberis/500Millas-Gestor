@@ -171,7 +171,7 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
         columnHelper.accessor("isPagado", {
             header: "Estado",
             cell: info => (
-                <span className={`font-mono text-sm  ${info.getValue() ? "bg-green-100" : "bg-red-100"} px-2 py-1 rounded`}>
+                <span className={`font-mono text-sm  ${info.getValue() ? "text-green-800 bg-green-100" : "text-red-800 bg-red-100"} px-2 py-1 rounded`}>
                     {info.getValue() ? "Pagado" : "Pendiente"}
                 </span>
             )

@@ -1,17 +1,5 @@
 import { useState, useMemo } from "react";
-import { 
-    DollarSign, 
-    Plus, 
-    Calendar, 
-    Package, 
-    Filter, 
-    Search, 
-    Edit2, 
-    Trash2,
-    ShoppingCart,
-    TrendingUp,
-    User
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import { useVentaData } from "../hooks/useVentaData.js";
 import VentaTable from "../components/VentaTabla.jsx";
 import VentaForm from "../components/VentaForm.jsx";

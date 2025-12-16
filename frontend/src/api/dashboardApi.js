@@ -24,12 +24,6 @@ export const getAlertas = async () => {
 }
 
 
-export const marcarAlertasLeidas = async (id) => {
-    const res = await api.patch(`/dashboard/alerts/${id}`);
-    return res.data;
-}
-
-
 export const getPedidos = async () => {
     const res = await api.get("/dashboard/pedidos");
     return res.data;

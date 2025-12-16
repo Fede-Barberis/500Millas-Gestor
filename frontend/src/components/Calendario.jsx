@@ -16,16 +16,16 @@ export default function Calendario({ pedidos, onSelectPedido }) {
     function handleDayClick(day) {
         const fecha = day.toISOString().slice(0, 10); // Obtener la fecha en formato YYYY-MM-DD
         
-        const pedidoDelDia = pedidos.filter( p => p.fecha_entrega === fecha );
+        const pedidosDelDia = pedidos.filter( p => p.fecha_entrega === fecha );
         
-        if (pedidoDelDia.length > 0) {
-            const ids = pedidoDelDia.map(p => p.id_pedido);
-            onSelectPedido(ids); // ⬅️ nuevo nombre, nueva lógica
+        if (pedidosDelDia.length > 0) {
+            const ids = pedidosDelDia.map(p => Number(p.id_pedido));
+            onSelectPedido(ids);
         }
     }
 
     return (
-        <div className="w-full md:w-72 mx-auto shadow-lg p-6 bg-white rounded-2xl">
+        <div className="w-full h-96 md:w-72 mx-full shadow-lg p-4 bg-white rounded-2xl">
             {/* CALENDARIO */}
             <DayPicker
                 onDayClick={handleDayClick}
@@ -34,11 +34,11 @@ export default function Calendario({ pedidos, onSelectPedido }) {
                     month: "w-full",
                     table: "w-full",
                     caption: "text-xl font-bold text-green-600 mb-4",
-                    day: "p-2 text-sm sm:text-base hover:bg-green-200 rounded-lg",
+                    day: "p-2 m-0.5 mx-auto text-sm sm:text-base hover:bg-green-200 rounded-xl",
                     day_today: "border border-green-500",
                     day_selected: "bg-green-600 text-white rounded-full",
                     weekdays: "hidden sm:grid grid-cols-7 text-center text-gray-500 font-semibold",
-                    weekday: "text-xs sm:text-sm py-5",
+                    weekday: "text-xs sm:text-sm py-2",
                     week: "grid grid-cols-7 lg:mb-2 font-semibold",
                 }}
                 modifiers={{ conPedido: diasConPedidos }}
