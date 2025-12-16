@@ -78,13 +78,13 @@ const pedidoController = {
             }
 
 
-            // 1) Crear pedido
+            // Crear pedido
             const pedido = await Pedido.create(
                 { fecha_entrega, persona, estado: "pendiente" },
                 { transaction }
             );
 
-            // 2) Crear detalles y actualizar stock
+            // Crear detalles
             for (const item of productosNormalizados) {
                 await DetallePedido.create(
                     {
@@ -203,7 +203,7 @@ const pedidoController = {
                 throw new Error("El campo 'detalles' debe ser un array con al menos un ítem");
             }
 
-            // 1) Obtener pedido
+            // Obtener pedido
             const pedido = await Pedido.findByPk(id_pedido, { transaction });
 
             if (!pedido) {
@@ -224,7 +224,7 @@ const pedidoController = {
                 precio_unitario: Number(d.precio_unitario)
             }));
 
-            // 2) Validar stock SOLO si pasa a entregado
+            // Validar stock SOLO si pasa a entregado
             if (pasaAEntregado) {
                 for (const item of detallesNorm) {
                     const prod = await Producto.findByPk(item.id_producto, { transaction });
@@ -241,13 +241,13 @@ const pedidoController = {
                 }
             }
 
-            // 3) Actualizar cabecera
+            // Actualizar cabecera
             await pedido.update(
                 { fecha_entrega, persona, estado },
                 { transaction }
             );
 
-            // 4) Reemplazar detalles
+            // Reemplazar detalles
             await DetallePedido.destroy({
                 where: { id_pedido },
                 transaction
@@ -265,7 +265,7 @@ const pedidoController = {
                 );
             }
 
-            // 5) Si pasó a ENTREGADO → crear venta
+            // Si pasó a ENTREGADO → crear venta
             if (pasaAEntregado) {
                 await crearVentaDesdePedido(id_pedido, transaction);
             }

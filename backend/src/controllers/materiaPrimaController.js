@@ -1,22 +1,7 @@
-import { 
-    CompraMP,
-    MateriaPrima,
-} from "../models/index.js";
-
+import {  CompraMP, MateriaPrima } from "../models/index.js";
 import db from "../config/database.js";
+import actualizarStockMateriaPrima from "../helpers/actualizarStockMateriaPrima.js";
 
-async function actualizarStockMP(id_materiaPrima, cantidad, operacion, transaction) {
-    const mp = await MateriaPrima.findByPk(id_materiaPrima, { transaction });
-
-    if (!mp) throw new Error("Materia prima no encontrada");
-
-    const nuevoStock =
-        operacion === "add"
-            ? parseFloat(mp.stock) + parseFloat(cantidad)
-            : parseFloat(mp.stock) - parseFloat(cantidad);
-
-    await mp.update({ stock: nuevoStock }, { transaction });
-}
 
 const materiaPrimaController =  {
     
@@ -75,7 +60,7 @@ const materiaPrimaController =  {
             );
 
             // Sumar stock
-            await actualizarStockMP(id_materiaPrima, cantidad, "add", transaction);
+            await actualizarStockMateriaPrima(id_materiaPrima, cantidad, "add", transaction);
 
             await transaction.commit();
 
@@ -113,7 +98,7 @@ const materiaPrimaController =  {
             }
 
             // Restar stock
-            await actualizarStockMP(
+            await actualizarStockMateriaPrima(
                 compraMp.id_materiaPrima,
                 compraMp.cantidad,
                 "sub",
@@ -171,17 +156,16 @@ const materiaPrimaController =  {
             const newCantidad = parseFloat(cantidad);
             const newMateria = id_materiaPrima;
 
-            // -----------------------------------------
-            //  ACTUALIZACIÓN DEL STOCK
-            // -----------------------------------------
+
+            // Actualizar stock
 
             // Si cambia la materia prima
             if (oldMateria !== newMateria) {
                 // Devolver la cantidad al stock del ítem viejo
-                await actualizarStockMP(oldMateria, oldCantidad, "sub", transaction);
+                await actualizarStockMateriaPrima(oldMateria, oldCantidad, "sub", transaction);
 
                 // Sumar cantidad al nuevo ítem
-                await actualizarStockMP(newMateria, newCantidad, "add", transaction);
+                await actualizarStockMateriaPrima(newMateria, newCantidad, "add", transaction);
             }
             else {
                 // Si no cambia la materia prima, pero sí la cantidad
@@ -189,16 +173,15 @@ const materiaPrimaController =  {
                     const diferencia = newCantidad - oldCantidad;
 
                     if (diferencia > 0) {
-                        await actualizarStockMP(newMateria, diferencia, "add", transaction);
+                        await actualizarStockMateriaPrima(newMateria, diferencia, "add", transaction);
                     } else {
-                        await actualizarStockMP(newMateria, Math.abs(diferencia), "sub", transaction);
+                        await actualizarStockMateriaPrima(newMateria, Math.abs(diferencia), "sub", transaction);
                     }
                 }
             }
 
-            // --------------------------------------------------
             //   Actualizar compra
-            // --------------------------------------------------
+            
             await compraMp.update(
                 {
                     fecha,
@@ -230,91 +213,7 @@ const materiaPrimaController =  {
             });
         }
     }
-
 }
-
 
 export default materiaPrimaController;
 
-
-
-
-// async crearMateriaPrima(req, res) {
-//         try {
-//             const { nombre, stock } = req.body;
-
-//             // 1. Crear producción
-//             const materiaPrima = await MateriaPrima.create({ nombre, stock });
-
-//             res.json({
-//                 ok: true,
-//                 materiaPrima,
-//                 message: "Materia prima creada correctamente"
-//             });
-
-//         } catch (error) {
-//             console.error('Error en crearMateriaPrima:', error);
-//             res.status(500).json({ 
-//                 ok: false, 
-//                 error: error.message 
-//             });
-//         }
-//     },
-
-//     async eliminarMateriaPrima (req, res) {
-//         try {
-//             const { id_materiaPrima } = req.params;
-//             const materiaPrima = await MateriaPrima.findByPk(id_materiaPrima)
-
-//             if (!materiaPrima) {
-//                 return res.status(404).json({ 
-//                     ok: false,
-//                     error: "Materia prima no encontrada" 
-//                 });
-//             }
-
-//             await materiaPrima.destroy(id_materiaPrima)
-            
-//             return res.json({ 
-//                 ok: true,
-//                 message: "Materia Prima eliminada",
-//                 materiaPrima
-//             });
-//         } catch(error) {
-//             console.log("Error en eliminarMateriaPrima:", error);
-//             res.status(500).json({
-//                 ok: false,
-//                 error: error.message
-//             })
-//         }
-//     },
-
-//     async editarMateriaPrima (req, res) {
-//         try {
-//             const { id_materiaPrima } = req.params;
-//             const materiaPrima = await MateriaPrima.findByPk(id_materiaPrima);
-
-//             if (!materiaPrima) return res.status(404).json({ 
-//                 ok: false, 
-//                 error: "Materia prima no encontrada" 
-//             });
-
-//             await materiaPrima.update({
-//                 nombre: req.body.nombre,
-//                 stock: req.body.stock
-//             });
-            
-//             res.json({ 
-//                 ok: true,
-//                 message: "Materia prima actualizada correctamente",
-//                 materiaPrima
-//             });
-
-//         } catch(error) {
-//             console.log("Error en editarMateriaPrima:", error);
-//             res.status(500).json({
-//                 ok: false,
-//                 error: error.message
-//             })
-//         }
-//     }

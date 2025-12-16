@@ -3,6 +3,7 @@ import {
     Produccion,
     Producto,
     Venta, 
+    VentaDetalle
 } from "../models/index.js";
 
 import { Op } from "sequelize";
@@ -13,7 +14,7 @@ const productoController =  {
         try {
             const { nombre, stock } = req.body;
 
-            // 1. Crear producción
+            // Crear producción
             const producto = await Producto.create({ nombre, stock });
 
             res.json({
@@ -71,7 +72,6 @@ const productoController =  {
 
             await producto.update({
                 nombre: req.body.nombre,
-                // stock: req.body.stock
             });
             
             res.json({ 
@@ -91,6 +91,8 @@ const productoController =  {
 
 
     async obtenerMovimientosProducto (req,res) {
+        console.log("PARAMS RECIBIDOS:", req.params);
+
         try {
             const { id_producto } = req.params;
 
@@ -115,13 +117,19 @@ const productoController =  {
                 ],
             });
 
-            const disminuciones = await Venta.count({
-                where: {
-                    id_producto,
-                    fecha: {
-                        [Op.between]: [haceUnaSemana, hoy]
+            const disminuciones = await VentaDetalle.count({
+                where: { id_producto },
+                include: [
+                    {
+                        model: Venta,
+                        required: true,
+                        where: {
+                            fecha: {
+                                [Op.between]: [haceUnaSemana, hoy]
+                            }
+                        }
                     }
-                }
+                ]
             });
 
             return res.json({

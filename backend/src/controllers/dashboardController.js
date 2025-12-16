@@ -1,4 +1,4 @@
-import { Venta, VentaDetalle, CompraMP, DetalleEmpleado, Producto, MateriaPrima, Alerta, Pedido, DetallePedido } from "../models/index.js";
+import { Venta, VentaDetalle, CompraMP, DetalleEmpleado, Producto, MateriaPrima, Pedido, DetallePedido } from "../models/index.js";
 import { Sequelize, Op } from "sequelize";
 
 async function calcularTotalesPorMes(inicio, fin) {
@@ -13,7 +13,8 @@ async function calcularTotalesPorMes(inicio, fin) {
                 attributes: [],
                 required: true, // Asegura un INNER JOIN para el filtro
                 where: {
-                    fecha: { [Op.between]: [inicio, fin] }
+                    fecha: { [Op.between]: [inicio, fin] },
+                    isPagado: true
                 }
             }],
             raw: true
@@ -32,19 +33,8 @@ async function calcularTotalesPorMes(inicio, fin) {
 
         const gastosMp = parseFloat(totalMp?.total || 0);
 
-
-        // Sueldos empleados
-        const totalSueldos = await DetalleEmpleado.findOne({
-            attributes: [[Sequelize.literal('SUM(precioHora * cantHoras)'), 'totalSueldos']],
-            where: { fechaCobro: { [Op.between]: [inicio, fin] } },
-            raw: true
-        });
-
-        const gastosSueldos = parseFloat(totalSueldos?.totalSueldos || 0);
-
-
         // Totales
-        const totalGastos = gastosMp + gastosSueldos;
+        const totalGastos = gastosMp;
         const balance = ingresosVentas - totalGastos;
         const crecimiento = ingresosVentas > 0
             ? ((balance / ingresosVentas) * 100).toFixed(1)
@@ -116,13 +106,16 @@ const dashboardController = {
             // Ingresos por mes
             const ingresosPorMes = await VentaDetalle.findAll({
                 attributes: [
-                    [Sequelize.fn('MONTH', Sequelize.col('Ventum.fecha')), 'mes'], // Referencia a la fecha en Venta
+                    [Sequelize.fn('MONTH', Sequelize.col('Ventum.fecha')), 'mes'], 
                     [Sequelize.literal('SUM(VentaDetalle.precio * VentaDetalle.cantidad)'), 'total']
                 ],
                 include: [{
                     model: Venta,
                     attributes: [],
-                    required: true // Necesario para el filtro de fecha (aunque no está en este fragmento) y para que funcione la agrupación
+                    where: {
+                        isPagado: true
+                    },
+                    required: true 
                 }],
                 group: [Sequelize.fn('MONTH', Sequelize.col('Ventum.fecha'))], // Agrupar por mes de Venta
                 order: [[Sequelize.literal('mes'), 'ASC']],
@@ -130,23 +123,11 @@ const dashboardController = {
                 subQuery: false
             });
 
-
-
             // Egresos por mes (materia prima)
             const egresosMP = await CompraMP.findAll({
                 attributes: [
                     [Sequelize.fn('MONTH', Sequelize.col('fecha')), 'mes'],
                     [Sequelize.literal('SUM(precio * cantidad)'), 'total']
-                ],
-                group: ['mes'],
-                order: [[Sequelize.literal('mes'), 'ASC']]
-            });
-
-            // Egresos por mes (sueldos)
-            const egresosSueldos = await DetalleEmpleado.findAll({
-                attributes: [
-                    [Sequelize.fn('MONTH', Sequelize.col('fechaCobro')), 'mes'],
-                    [Sequelize.literal('SUM(precioHora * cantHoras)'), 'total']
                 ],
                 group: ['mes'],
                 order: [[Sequelize.literal('mes'), 'ASC']]
@@ -159,17 +140,15 @@ const dashboardController = {
                 // Acceder directamente a 'mes' y 'total' del objeto plano
                 const ingreso = ingresosPorMes.find(i => i.mes == mes); 
                 const egresoMP = egresosMP.find(e => e.mes == mes);
-                const egresoSueldo = egresosSueldos.find(e => e.mes == mes);
-
+                
                 // Acceder directamente a 'total' 
                 const totalIngresos = parseFloat(ingreso?.total || 0);
-                const totalMP = parseFloat(egresoMP?.total || 0);
-                const totalSueldos = parseFloat(egresoSueldo?.total || 0);
+                const totalMP = parseFloat(egresoMP?.total || 0)
 
                 return {
                     mes,
                     ingresos: totalIngresos,
-                    egresos: totalMP + totalSueldos
+                    egresos: totalMP
                 };
             });
 
@@ -193,7 +172,6 @@ const dashboardController = {
 
     async getPieDataChart (req, res) {
         try {
-            // Query params
             const { month, year } = req.query;
 
             if(!month || !year){
@@ -205,7 +183,7 @@ const dashboardController = {
             const mes = parseInt(month, 10)
             const anio = parseInt(year, 10)
 
-            if(isNaN(mes) || mes < 1 > 12) {
+            if (isNaN(mes) || mes < 1 || mes > 12){
                 res.status(400).json({ error: "El parametro 'month' debe ser un numero entre 1 y 12" })
             }
 
@@ -214,33 +192,31 @@ const dashboardController = {
             }
 
 
-            const ventasPorProducto = await VentaDetalle.findAll({ // Cambiado de Venta a VentaDetalle
+            const ventasPorProducto = await VentaDetalle.findAll({ 
                 attributes: [
                     [Sequelize.col('Producto.nombre'), 'name'], // Obtener el nombre del producto directamente
                     [Sequelize.literal('SUM(VentaDetalle.cantidad)'), 'value']
                 ],
-                where: { // El filtro de fecha debe ir en el include de Venta
-                    // [Op.and]: [ ... ] // Se elimina el filtro here
-                },
                 include: [
                     {
-                        model: Venta, // Incluir Venta para filtrar por fecha
+                        model: Venta, 
                         attributes: [],
                         required: true,
                         where: {
                             [Op.and]: [
                                 Sequelize.where(Sequelize.fn('MONTH', Sequelize.col('fecha')), mes),
-                                Sequelize.where(Sequelize.fn('YEAR', Sequelize.col('fecha')), anio)
+                                Sequelize.where(Sequelize.fn('YEAR', Sequelize.col('fecha')), anio),
+                                { isPagado: true }
                             ]
                         }
                     },
                     {
-                        model: Producto, // Incluir Producto para obtener el nombre
+                        model: Producto, 
                         attributes: [],
                         required: true,
                     }
                 ],
-                group: ['Producto.nombre'], // Agrupar por nombre/ID del Producto
+                group: ['Producto.nombre'],
                 order: [[Sequelize.literal('value'), 'DESC']],
                 raw: true
             });
@@ -262,166 +238,150 @@ const dashboardController = {
     },
 
 
-    async getAlertas (req, res) {
+    async getAlertas(req, res) {
         try {
             const hoy = new Date();
             const limiteVencimiento = new Date();
             limiteVencimiento.setDate(hoy.getDate() + 7);
-            
-            //* ---- Buscar condiciones ----
-            
-            // Productos con menos de 10 unidades
-            const productosBajoStock = await Producto.findAll({
-                where: {
-                    stock: { [Op.lt]: 10}
-                },
-                attributes: ["nombre", "stock"],
-            });
 
-            // Materias primas con poco stock
-            const mpBajoStock = await MateriaPrima.findAll({
-                where: {
-                    stock: { [Op.lt]: 10 },
-                },
-                attributes: ["nombre", "stock"],
-            });
-
-            // Materia prima por vencer (en los próximos 7 días)
-            const mpVencimiento = await CompraMP.findAll({
-                where: {
-                    fch_vencimiento: {
-                        [Op.lte]: limiteVencimiento, // Incluye vencidas y por vencer
-                    },
-                },
-                attributes: ["id_compra", "fch_vencimiento"],
-                include: [
-                    {
-                        model: MateriaPrima,
-                        attributes: ["nombre"],
-                    },
-                ],
-            });
-
-            // pagos adeudados
-            const pagosPendientes = await CompraMP.findAll({
-                where: {
-                    isPagado: false
-                },
-                attributes: ["id_compra", "precio", "fecha", "cantidad"],
-                include: [
-                    {
-                        model: MateriaPrima,
-                        attributes: ["nombre"],
-                    },
-                ],
-            })
-
-            //* ---- Generar alertas dinámicamente ----
             const alertas = [];
 
+            // Productos bajo stock
+            const productosBajoStock = await Producto.findAll({
+            where: { stock: { [Op.lt]: 10 } },
+            attributes: ["nombre", "stock"],
+            });
+
             productosBajoStock.forEach(p => {
-                alertas.push({
-                    tipo: "producto",
-                    nivel: "warning",
-                    mensaje: `Stock bajo del producto "${p.nombre}" : ${p.stock} unidades`,
-                });
+            alertas.push({
+                id: `producto-${p.nombre}`,
+                tipo: "producto",
+                nivel: "warning",
+                mensaje: `Stock bajo del producto "${p.nombre}" (${p.stock})`,
+            });
+            });
+
+            // Materia prima bajo stock
+            const mpBajoStock = await MateriaPrima.findAll({
+            where: { stock: { [Op.lt]: 10 } },
+            attributes: ["nombre", "stock"],
             });
 
             mpBajoStock.forEach(mp => {
-                alertas.push({
-                    tipo: "materia_prima",
-                    nivel: "danger",
-                    mensaje: `Stock bajo de materia prima "${mp.nombre}" : ${mp.stock} unidades`,
-                });
+            alertas.push({
+                tipo: "materia_prima",
+                nivel: "danger",
+                mensaje: `Stock bajo de materia prima "${mp.nombre}" (${mp.stock})`,
+            });
             });
 
-            // Materias primas vencidas o por vencer
+            // Vencimientos
+            const mpVencimiento = await CompraMP.findAll({
+            where: {
+                fch_vencimiento: { [Op.lte]: limiteVencimiento },
+            },
+            include: [{
+                model: MateriaPrima,
+                attributes: ["nombre"],
+            }],
+            });
+
             mpVencimiento.forEach(compra => {
-                const nombreMp = compra.MateriaPrima?.nombre || "Desconocida";
-                const fecha = new Date(compra.fch_vencimiento);
-                const fechaFormateada = fecha.toLocaleDateString("es-AR");
+            const fecha = new Date(compra.fch_vencimiento);
+            const vencida = fecha < hoy;
 
-                const vencida = fecha < hoy; // true si ya venció
+            alertas.push({
+                tipo: "vencimiento",
+                nivel: vencida ? "expired" : "warning",
+                mensaje: vencida
+                ? `Materia prima "${compra.MateriaPrima.nombre}" vencida`
+                : `Materia prima "${compra.MateriaPrima.nombre}" por vencer`,
+            });
+            });
 
-                alertas.push({
-                    tipo: "vencimiento",
-                    nivel: vencida ? "expired" : "warning",  
-                    mensaje: vencida
-                        ? `Materia prima "${nombreMp}" venció el ${fechaFormateada}`
-                        : `Materia prima "${nombreMp}" vence el ${fechaFormateada}`,
-                });
+            // Pagos pendientes
+            const pagosPendientes = await CompraMP.findAll({
+            where: { isPagado: false },
+            include: [{ model: MateriaPrima, attributes: ["nombre"] }],
             });
 
             pagosPendientes.forEach(p => {
                 alertas.push({
-                    tipo: "compra_mp",
+                    tipo: "pago",
                     nivel: "warning",
-                    mensaje: `Falta pagar compra (${p.fecha}) ${p.MateriaPrima.nombre}. ||  Total a pagar: ${(p.precio * p.cantidad)}`,
+                    mensaje: `Compra impaga de ${p.MateriaPrima.nombre} ($${p.precio * p.cantidad})`,
+                });
+            });
+
+            // Pedidos vencidos NO entregados
+            const pedidosVencidos = await Pedido.findAll({
+                where: {
+                    fecha_entrega: { [Op.lt]: hoy },
+                    estado: { [Op.ne]: "entregado" }
+                },
+                attributes: ["id_pedido", "fecha_entrega", "persona"]
+            });
+
+            pedidosVencidos.forEach(p => {
+                alertas.push({
+                    id: `pedido-vencido-${p.id_pedido}`,
+                    tipo: "pedido",
+                    nivel: "expired",
+                    mensaje: `Pedido de ${p.persona} vencido (fecha ${new Date(p.fecha_entrega).toLocaleDateString("es-AR")})`,
                 });
             });
 
 
-            //* ---- Guardar solo las nuevas ----
-            for (const alerta of alertas) {
-                const yaExiste = await Alerta.findOne({
-                    where: { mensaje: alerta.mensaje },
+            // Pedidos próximos a entregar (3 días)
+            const limiteProximo = new Date();
+            limiteProximo.setDate(hoy.getDate() + 3);
+
+            const pedidosProximos = await Pedido.findAll({
+                where: {
+                    fecha_entrega: {
+                        [Op.between]: [hoy, limiteProximo]
+                    },
+                    estado: { [Op.ne]: "entregado" }
+                },
+                attributes: ["id_pedido", "fecha_entrega", "persona"]
+            });
+
+            pedidosProximos.forEach(p => {
+                alertas.push({
+                    id: `pedido-proximo-${p.id_pedido}`,
+                    tipo: "pedido",
+                    nivel: "warning",
+                    mensaje: `Pedido de ${p.persona} se entrega pronto (${new Date(p.fecha_entrega).toLocaleDateString("es-AR")})`,
                 });
-
-                if (!yaExiste) {
-                    await Alerta.create(alerta);
-                }
-            }
-
-            //* ---- Obtener solo las no leídas ----
-            const alertasNoLeidas = await Alerta.findAll({
-                where: { is_leida: false },
-                order: [["createdAt", "DESC"]],
             });
 
-            return res.json({ alertas: alertasNoLeidas });
+            return res.json({
+                total: alertas.length,
+                alertas
+            });
 
         } catch (error) {
-            console.log("Error en getAlertas: ",error);
+            console.error("Error en getAlertas:", error);
             res.status(500).json({
-                error: "Error al obtener alertas",
-                message: error.message
-            })
+            error: "Error al obtener alertas",
+            message: error.message
+            });
         }
     },
 
-
-    async marcarComoLeida (req, res) {
-        try {
-            const { id } = req.params;
-
-            const alerta = await Alerta.findByPk(id);
-
-            if (!alerta) {
-                return res.status(404).json({ message: "Alerta no encontrada" });
-            }
-
-            alerta.is_leida = true;
-            await alerta.save();
-
-            res.json({
-                message: "Alerta marcada como leída",
-                alerta,
-            });
-        } catch (error) {
-            console.error("Error al marcar alerta como leída:", error);
-            res.status(500).json({
-                error: "Error al actualizar la alerta",
-                message: error.message,
-            });
-        }
-    },
 
 
     async getPedidos (req, res) {
         try{
             const pedidos = await Pedido.findAll({
                 attributes: ["id_pedido", "fecha_entrega", "persona"],
-                order:[["fecha_entrega", "ASC"]],
+                include: [
+                    {
+                        model: DetallePedido,
+                        include: [Producto],
+                    },
+                ], 
+                order: [["fecha_entrega", "ASC"]],
             });
 
             return res.json( pedidos );
@@ -456,7 +416,7 @@ const dashboardController = {
 
             return res.json(pedido);
         } catch (error) {
-            console.log("Error en obteener detalles peidos:", error);
+            console.log("Error en obteener detalles pedidos:", error);
             return res.status(500).json({
                 error: "Error al obtener detalles del pedido",
                 message: error.message

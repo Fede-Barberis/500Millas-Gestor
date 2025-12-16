@@ -1,18 +1,6 @@
 import { Producto, Venta, VentaDetalle } from '../models/index.js'
+import actualizarStockProducto from "../helpers/actualizarStockProducto.js"
 import db from "../config/database.js";
-
-async function actualizarStockProducto(id_producto, cantidad, operacion, transaction) {
-    const p = await Producto.findByPk(id_producto, { transaction });
-
-    if (!p) throw new Error("Producto no encontrado");
-
-    const nuevoStock =
-        operacion === "add"
-            ? parseFloat(p.stock) + parseFloat(cantidad)
-            : parseFloat(p.stock) - parseFloat(cantidad);
-
-    await p.update({ stock: nuevoStock }, { transaction });
-}
 
 
 const ventaController = {
@@ -92,13 +80,13 @@ const ventaController = {
             }
 
 
-            // 1) Crear venta
+            // Crear venta
             const venta = await Venta.create(
                 { fecha, persona, id_pedido: pedidoNormalizado, isPagado: pago },
                 { transaction }
             );
 
-            // 2) Crear detalles y actualizar stock
+            // Crear detalles y actualizar stock
             for (const item of productosNormalizados) {
                 await VentaDetalle.create(
                     {
@@ -133,7 +121,6 @@ const ventaController = {
             });
         }
     },
-
 
 
     async eliminarVenta (req, res) {
@@ -253,7 +240,7 @@ const ventaController = {
                     );
 
                 } else {
-                    // 🔹 Producto ya existía → comprobar diferencia de cantidad
+                    // Producto ya existía → comprobar diferencia de cantidad
                     const diff = nuevo.cantidad - viejo.cantidad;
 
                     if (diff !== 0) {
@@ -275,7 +262,7 @@ const ventaController = {
                 }
             }
 
-            // 🔹 Los detalles que quedaron en mapViejos están eliminados
+            // Los detalles que quedaron en mapViejos están eliminados
             for (const det of mapViejos.values()) {
                 // devolver stock
                 await actualizarStockProducto(det.id_producto, det.cantidad, "add", transaction);
@@ -306,7 +293,6 @@ const ventaController = {
             });
         }
     }
-
 }
 
 export default ventaController;
