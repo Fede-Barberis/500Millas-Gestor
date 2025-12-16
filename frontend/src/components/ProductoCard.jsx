@@ -1,8 +1,8 @@
 import { Edit2, Trash2, AlertCircle, Package, TrendingUp } from "lucide-react";
-import alfajorImg from "/assets/img/alfajor-1.PNG";
-import bolsa1Img from "/assets/img/galleta1-2.png";
-import bolsa2Img from "/assets/img/galleta2-2.png";
-import sinImg from "/assets/img/sinImg.png";
+import alfajorImg from "/assets/img/alfajor-1.webp";
+import bolsa1Img from "/assets/img/galleta1-2.webp";
+import bolsa2Img from "/assets/img/galleta2-2.webp";
+import sinImg from "/assets/img/default.webp";
 import ConfirmModal from "../components/ModalConfirmacion"
 import { useState } from "react";
 
