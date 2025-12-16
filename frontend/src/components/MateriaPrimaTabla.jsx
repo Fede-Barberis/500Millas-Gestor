@@ -4,7 +4,7 @@ import {
     flexRender,
     createColumnHelper,
 } from "@tanstack/react-table";
-import { Calendar, Edit2, Filter, Package, Wheat, Search, Trash2 } from "lucide-react";
+import { Calendar, Edit2, Filter, Package2, Wheat, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import ConfirmModal from "../components/ModalConfirmacion";
 
@@ -232,7 +232,7 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                            <Package className="w-6 h-6" />
+                            <Package2 className="w-6 h-6" />
                             Historial de Compras
                         </h2>
                         <p className="text-white text-sm mt-1">
@@ -363,7 +363,7 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
                         {table.getRowModel().rows.length === 0 ? (
                             <tr>
                                 <td className="px-6 py-12 text-center text-gray-500" colSpan={columns.length}>
-                                    <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                    <Package2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                                     <p className="text-lg font-medium">No hay compras registradas</p>
                                     <p className="text-sm text-gray-400 mt-1">
                                         Los registros aparecerán aquí una vez que agregues compras

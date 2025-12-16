@@ -1,4 +1,4 @@
-import { Edit2, Trash2, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import huevos from "/assets/img/huevo.webp"
 import harina from "/assets/img/harina.jpeg"
 import azucar from "/assets/img/azucar.jpg"
