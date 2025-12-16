@@ -10,6 +10,7 @@ import Produccion from "../pages/Produccion.jsx";
 import Productos from "../pages/Productos.jsx";
 import MateriaPrima from "../pages/MateriaPrima.jsx";
 import Ventas from "../pages/Ventas.jsx";
+import Pedidos from "../pages/Pedidos.jsx"
 
 export default function AppRouter() {
     return (
@@ -21,8 +22,8 @@ export default function AppRouter() {
                 classNames: {
                     success: '!bg-green-50 !border-l-4 !border-green-500',
                     error: '!bg-red-100 !border-l-4 !border-red-600 ',
-                    title: '!text-base !font-semibold', // Tamaño del título
-                    description: '!text-sm', // Tamaño de la descripción
+                    title: '!text-base !font-semibold', 
+                    description: '!text-sm', 
                 },
                 style: {
                     zIndex: 9999,
@@ -45,6 +46,7 @@ export default function AppRouter() {
                 <Route path="/productos" element={<Productos />} />
                 <Route path="/materiaPrima" element={<MateriaPrima />} />
                 <Route path="/ventas" element={<Ventas />} />
+                <Route path="/pedidos" element={<Pedidos />} />
             </Route>
             
             <Route path="*" element={<Navigate to="/auth/login" />} />
