@@ -4,29 +4,29 @@ import harina from "/assets/img/harina.webp"
 import azucar from "/assets/img/azucar.webp"
 import grasa from "/assets/img/grasa.webp"
 import sal from "/assets/img/sal.webp"
-import dulceDeLeche from "/assets/img/dulceDeLeche.webp"
+import dulceDeLeche from "/assets/img/dulce.webp"
+import defaultImg from "/assets/img/default.webp";
+
 
 export default function MateriaPrimaCard({ materiaPrima }) {
 
     // Imágenes según tipo de materia prima
     const imagenesMateriaPrima = {
-        "harina": harina,
-        "huevo": huevos,
-        "grasa": grasa,
+        harina,
+        huevo: huevos,
+        grasa,
         "dulce de leche": dulceDeLeche,
-        "sal": sal,
-        "azucar": azucar,
+        sal,
+        azucar,
     };
 
-    // Obtener imagen basado en el nombre
-    const getImagen = (nombre) => {
-        const nombreLower = nombre.toLowerCase();
-        const key = Object.keys(imagenesMateriaPrima).find(k => 
-            nombreLower.includes(k)
-        );
-        return imagenesMateriaPrima[key] || imagenesMateriaPrima.default;
-    };
-
+    // Obtener imagen basado en el nombre 
+    const getImagen = (nombre) => { 
+        const nombreLower = nombre.toLowerCase(); 
+        const key = Object.keys(imagenesMateriaPrima).find(k => nombreLower.includes(k) ); 
+        return imagenesMateriaPrima[key] || imagenesMateriaPrima.default; 
+    }; 
+    
     const imagen = getImagen(materiaPrima.nombre);
 
     // Determinar color según stock
