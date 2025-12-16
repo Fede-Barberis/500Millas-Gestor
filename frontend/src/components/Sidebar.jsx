@@ -46,14 +46,14 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 `}
             >
                 {/* Botón cerrar (solo mobile cuando está abierto) */}
-                {isOpen && (
+                {/* {isOpen && (
                     <button
                         onClick={toggleSidebar}
                         className="md:hidden absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                         <X size={24} className="text-gray-600" />
                     </button>
-                )}
+                )} */}
 
                 {/* 🔝 Header del sidebar */}
                 <div className="mt-6 px-4 pb-4 border-b border-gray-200">
