@@ -4,7 +4,7 @@ import harina from "/assets/img/harina.webp"
 import azucar from "/assets/img/azucar.webp"
 import grasa from "/assets/img/grasa.webp"
 import sal from "/assets/img/sal.webp"
-import dulceDeLeche from "/assets/img/dulce_de_leche.webp"
+import dulceDeLeche from "/assets/img/dulceDeLeche.webp"
 
 export default function MateriaPrimaCard({ materiaPrima }) {
 
