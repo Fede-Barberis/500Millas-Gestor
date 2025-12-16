@@ -1,4 +1,4 @@
-import { Venta, VentaDetalle, CompraMP, DetalleEmpleado, Producto, MateriaPrima, Pedido, DetallePedido } from "../models/index.js";
+import { Venta, VentaDetalle, CompraMP, Producto, MateriaPrima, Pedido, DetallePedido } from "../models/index.js";
 import { Sequelize, Op } from "sequelize";
 
 async function calcularTotalesPorMes(inicio, fin) {

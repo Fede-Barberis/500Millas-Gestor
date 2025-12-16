@@ -5,8 +5,6 @@ import Producto from "./producto.js";
 import Venta from "./venta.js";
 import MateriaPrima from "./materiaPrima.js";
 import CompraMP from "./compraMP.js";
-import Empleado from "./empleado.js";
-import DetalleEmpleado from "./detalleEmpleado.js";
 import Pedido from "./pedido.js";
 import DetallePedido from "./detallePedido.js";
 import RecetaMateriaPrima from "./recetaMateriaPrima.js";
@@ -29,10 +27,6 @@ VentaDetalle.belongsTo(Venta, { foreignKey: "id_venta" });
 // MateriaPrima -> CompraMP (Una materia prima puede tener muchas compras)
 MateriaPrima.hasMany(CompraMP, { foreignKey: 'id_materiaPrima' });
 CompraMP.belongsTo(MateriaPrima, { foreignKey: 'id_materiaPrima' });
-
-// Empleado -> DetalleEmpleado (Un empleado puede tener muchos pagos)
-Empleado.hasMany(DetalleEmpleado, { foreignKey: 'id_empleado' });
-DetalleEmpleado.belongsTo(Empleado, { foreignKey: 'id_empleado' });
 
 
 
@@ -106,8 +100,6 @@ export {
     Venta,
     MateriaPrima,
     CompraMP,
-    Empleado,
-    DetalleEmpleado,
     Pedido,
     DetallePedido,
     Receta,

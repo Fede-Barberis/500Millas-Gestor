@@ -40,9 +40,16 @@ const start = async () => {
         await db.authenticate();
         console.log("✅ Conectado a DB (authenticate).");
 
+        if (process.env.DB_FORCE_SYNC === "true") {
+            console.warn("⚠️ DB_FORCE_SYNC activo: recreando tablas");
+            await db.sync({ force: true });
+            console.warn("⚠️ DB sincronizada con FORCE");
+        }
+
+
         // Sincronizar modelos. Usá alter:true en desarrollo para que actualice sin borrar datos.
-        await db.sync();
-        console.log("✅ Modelos sincronizados.");
+        // await db.sync();
+        // console.log("✅ Modelos sincronizados.");
 
         app.listen(PORT, () => {
         console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
