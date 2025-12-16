@@ -7,7 +7,6 @@ import MateriaPrima from "./materiaPrima.js";
 import CompraMP from "./compraMP.js";
 import Empleado from "./empleado.js";
 import DetalleEmpleado from "./detalleEmpleado.js";
-import Alerta from "./alerta.js";
 import Pedido from "./pedido.js";
 import DetallePedido from "./detallePedido.js";
 import RecetaMateriaPrima from "./recetaMateriaPrima.js";
@@ -109,7 +108,6 @@ export {
     CompraMP,
     Empleado,
     DetalleEmpleado,
-    Alerta,
     Pedido,
     DetallePedido,
     Receta,

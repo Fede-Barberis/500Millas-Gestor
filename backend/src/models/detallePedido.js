@@ -23,11 +23,6 @@ const detallePedido = db.define('DetallePedido', {
         type: DataTypes.DECIMAL(10,2),
         allowNull: false,
     },
-    estado: {
-        type: DataTypes.ENUM('pendiente', 'entregado'),
-        allowNull: false,
-        defaultValue: 'pendiente'
-    }
 }, {
     tableName: "detalle_pedidos",
     timestamps: false

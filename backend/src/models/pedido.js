@@ -14,6 +14,11 @@ const Pedido = db.define ('Pedido', {
     persona: {
         type: DataTypes.STRING(100),
         allowNull: false
+    },
+    estado: {
+        type: DataTypes.ENUM('pendiente', 'entregado'),
+        allowNull: false,
+        defaultValue: 'pendiente'
     }
 }, {
     tableName: "pedidos",
