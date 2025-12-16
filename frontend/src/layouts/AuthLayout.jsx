@@ -5,7 +5,6 @@ export default function AuthLayout() {
     const location = useLocation();
 
     const isLogin = location.pathname.includes("login");
-    const isRegister = location.pathname.includes("register");
 
     const backgroundStyle = {
         backgroundImage: isLogin
@@ -26,8 +25,23 @@ export default function AuthLayout() {
                 </div>
             </div>
 
-            <Toaster position="bottom-right"/>
+            <Toaster 
+                position="bottom-right"
+                toastOptions={{
+                    unstyled: false,
+                    classNames: {
+                        success: '!bg-green-50 !border-l-4 !border-green-500',
+                        error: '!bg-red-100 !border-l-4 !border-red-600 ',
+                        title: '!text-base !font-semibold', 
+                        description: '!text-sm', 
+                    },
+                    style: {
+                        zIndex: 9999,
+                    }
+                }}
+            />
 
         </>
     )
 }
+
