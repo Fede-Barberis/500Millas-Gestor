@@ -1,7 +1,7 @@
 import useMateriaPrimaData from '../hooks/useMateriaPrimaData'
 import MateriaPrimaTable from '../components/MateriaPrimaTabla'
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Package } from 'lucide-react';
 import MateriaPrimaCard from '../components/MateriaPrimaCard';
 import CompraMpForm from '../components/CompraMpForm';
 
