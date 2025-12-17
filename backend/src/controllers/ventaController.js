@@ -61,8 +61,6 @@ const ventaController = {
                 precio: Number(p.precio ?? p.producto?.precio)
             }));
 
-            console.log("NORMALIZADOS:", productosNormalizados);
-
             // Validación final
             for (const item of productosNormalizados) {
                 const productoBD = await Producto.findByPk(item.id_producto, { transaction });

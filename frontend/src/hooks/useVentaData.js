@@ -18,7 +18,6 @@ export function useVentaData() {
 
             setVentas(ventaData || [])
             setProductos(productoData || [])
-            console.log(ventas);
             
         } catch (error) {
             setError("Error al cargar ventas")
