@@ -102,7 +102,7 @@ export default function CompraMpForm({ materiaPrimas, onCreated, onClose, initia
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all animate-slideUp max-h-[95vh] flex flex-col">
                 
                 {/* Header con gradiente */}
-                <div className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 px-3 sm:px-8 py-6 sm:pb-10 sm:overflow-hidden">
+                <div className="relative bg-gradient-to-r from-yellow-500 to-red-300 px-3 sm:px-8 py-6 sm:pb-10 sm:overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                     <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
                     
@@ -354,7 +354,7 @@ export default function CompraMpForm({ materiaPrimas, onCreated, onClose, initia
                             </button>
                             <button
                                 type="submit"
-                                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg font-semibold flex items-center justify-center gap-2"
+                                className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-red-300 text-white rounded-xl hover:from-yellow-600 hover:to-red-400 transition-all shadow-md hover:shadow-lg font-semibold flex items-center justify-center gap-2"
                             >
                                 <Package className="w-4 h-4" />
                                 {initialData ? "Guardar Cambios" : "Registrar Compra"}

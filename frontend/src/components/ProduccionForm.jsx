@@ -189,7 +189,7 @@ export default function ProduccionForm({ recetas = [], productos = [], onCreated
                                 <button
                                     type="button"
                                     onClick={agregarProducto}
-                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md font-medium text-sm"
+                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-800 transition-all shadow-sm hover:shadow-md font-medium text-sm"
                                 >
                                 <Plus className="w-4 h-4" />
                                     Agregar Producto
@@ -315,15 +315,14 @@ export default function ProduccionForm({ recetas = [], productos = [], onCreated
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-6 py-3 sm:py-2.5 bg-gradient-to-br from-rose-500 to-red-400 border text-white rounded-lg shadow-sm hover:shadow-md font-medium translate-y-0 hover:-translate-y-0.5 transition-all duration-300 "
+                                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-all font-semibold"
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="submit"
                                 onClick={handleSubmit(onSubmit)}
-                                className="px-6 py-3 sm:py-2.5 bg-gradient-to-br from-emerald-500 to-green-400 text-white rounded-lg shadow-sm hover:shadow-md font-medium flex justify-center items-center gap-2 translate-y-0 hover:-translate-y-0.5 transition-all duration-300 "
-                            >
+                                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg font-semibold flex items-center justify-center gap-2">
                                 <Package className="w-4 h-4" />
                                 {initialData ? "Guardar Cambios" : "Crear Producción"}
                             </button>
