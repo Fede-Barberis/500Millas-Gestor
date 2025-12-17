@@ -132,7 +132,7 @@ export default function Login() {
     };
 
     return (
-        <div className="flex flex-col justify-center items-center min-h-screen p-4">
+        <div className="flex flex-col justify-start pt-12 sm:justify-center items-center min-h-screen p-4">
             <div className="w-full max-w-md">
                 
                 {/* Logo/Brand */}
@@ -197,12 +197,12 @@ export default function Login() {
                         </div>
 
                         {/* Recordar / Olvidé contraseña */}
-                        <div className="flex items-center justify-between text-sm">
+                        <div className="flex-col sm:flex-row flex justify-between text-sm">
                             <label className="flex items-center gap-2 text-white/80 cursor-pointer">
                                 <input type="checkbox" className="w-4 h-4 rounded border-white/30" />
                                 Recordarme
                             </label>
-                            <a href="#" className="text-orange-300 hover:text-orange-200 transition-colors">
+                            <a href="#" className="mt-3 sm:mt-0 text-orange-300 hover:text-orange-200 transition-colors">
                                 ¿Olvidaste tu contraseña?
                             </a>
                         </div>
