@@ -31,10 +31,10 @@ export default function Productos() {
         <div className="px-6 py-2 space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-5">
                 <div>
-                    <h2 className="font-heading text-4xl font-semibold text-gray-800">
+                    <h2 className="text-center sm:text-left font-heading text-4xl font-semibold text-gray-800">
                         Produccion
                     </h2>
-                    <p className="text-gray-500 mt-1">
+                    <p className="text-center sm:text-left text-gray-500 mt-1">
                         Gestiona tus producciones
                     </p>
                 </div>
