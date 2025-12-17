@@ -49,7 +49,7 @@ export default function Dashboard() {
             </section>
 
             {/* --- Alertas + Calendario --- */}
-            <section className="grid grid-cols-1 lg:grid-cols-[2fr_0.5fr] gap-6">
+            <section className="grid grid-cols-1 lg:grid-cols-[2fr_0.75fr] gap-6">
                 <AlertasDashboard
                 alertas={alertas}
                 filtro={filtro}
