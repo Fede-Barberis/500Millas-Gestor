@@ -113,7 +113,7 @@ export default function ProduccionForm({ recetas = [], productos = [], onCreated
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
                 {/* Header con gradiente */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6">
                     <div className="flex items-center gap-3 text-white">
@@ -144,7 +144,7 @@ export default function ProduccionForm({ recetas = [], productos = [], onCreated
                                 <input
                                     type="date"
                                     {...register("fecha")}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                                 />
                                 {errors.fecha && (
                                     <p className="text-red-500 text-sm flex items-center gap-1">
@@ -181,8 +181,8 @@ export default function ProduccionForm({ recetas = [], productos = [], onCreated
 
                         {/* Sección de productos */}
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <div className="flex  items-center justify-between">
+                                <h3 className="text-md sm:text-lg font-semibold text-gray-800 flex items-center gap-2">
                                     <Package className="w-5 h-5 text-blue-600" />
                                     Productos a Fabricar
                                 </h3>
@@ -311,18 +311,18 @@ export default function ProduccionForm({ recetas = [], productos = [], onCreated
                         </div>
 
                         {/* Footer con botones */}
-                        <div className=" py-5 flex justify-end gap-3">
+                        <div className=" py-5 flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-6 py-2.5 bg-gradient-to-br from-rose-500 to-red-400 border text-white rounded-lg shadow-sm hover:shadow-md font-medium translate-y-0 hover:-translate-y-0.5 transition-all duration-300 "
+                                className="px-6 py-3 sm:py-2.5 bg-gradient-to-br from-rose-500 to-red-400 border text-white rounded-lg shadow-sm hover:shadow-md font-medium translate-y-0 hover:-translate-y-0.5 transition-all duration-300 "
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="submit"
                                 onClick={handleSubmit(onSubmit)}
-                                className="px-6 py-2.5 bg-gradient-to-br from-emerald-500 to-green-400 text-white rounded-lg shadow-sm hover:shadow-md font-medium flex items-center gap-2 translate-y-0 hover:-translate-y-0.5 transition-all duration-300 "
+                                className="px-6 py-3 sm:py-2.5 bg-gradient-to-br from-emerald-500 to-green-400 text-white rounded-lg shadow-sm hover:shadow-md font-medium flex justify-center items-center gap-2 translate-y-0 hover:-translate-y-0.5 transition-all duration-300 "
                             >
                                 <Package className="w-4 h-4" />
                                 {initialData ? "Guardar Cambios" : "Crear Producción"}
