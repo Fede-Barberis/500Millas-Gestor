@@ -24,14 +24,14 @@ export default function Calendario({ pedidos, onSelectPedido }) {
 
     return (
         <div className="
-        w-full 
-        max-w-sm 
-        sm:max-w-md 
-        mx-auto 
-        shadow-lg 
-        p-3 sm:px-10
-        bg-white 
-        rounded-2xl
+            w-full 
+            max-w-sm 
+            sm:max-w-md 
+            mx-auto 
+            shadow-lg 
+            px-6 py-4 
+            bg-white 
+            rounded-2xl
         ">
         <DayPicker
             onDayClick={handleDayClick}
@@ -45,7 +45,7 @@ export default function Calendario({ pedidos, onSelectPedido }) {
             week: "grid grid-cols-7",
             day: `
                 flex items-center justify-center
-                h-9 w-9 sm:h-10 sm:w-10
+                h-9 w-9 sm:h-14 sm:w-14
                 text-xs sm:text-sm
                 hover:bg-green-200
                 rounded-full

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
     getDataChart,
     getPieChart,
@@ -8,10 +8,7 @@ import {
     getDetallePedido
 } from "../api/dashboardApi";
 
-    export function useDashboardData() {
-    // ===============================
-    // Estados principales
-    // ===============================
+export function useDashboardData() {
     const [balance, setBalance] = useState({
         total_ingresos: 0,
         total_gastos: 0,
@@ -34,101 +31,133 @@ import {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // ===============================
-    // Fetch principal
-    // ===============================
-    const fetchData = useCallback(async () => {
+    // Cache para detalles de pedidos
+    const detalleCache = useRef({});
+
+    
+    const fetchCoreData = useCallback(async () => {
         try {
         setLoading(true);
+        setError(null);
 
-        const [
-            balanceData,
-            chartData,
-            pieChartData,
-            alertasData,
-            pedidosData
-        ] = await Promise.all([
+        const [balanceData, alertasData] = await Promise.all([
             getStats(),
-            getDataChart(),
-            getPieChart(mes, anio),
-            getAlertas(),
-            getPedidos()
+            getAlertas()
         ]);
 
-        setBalance(prev => ({ ...prev, ...(balanceData || {}) }));
-        setChart(Array.isArray(chartData) ? chartData : []);
-        setPieChart(Array.isArray(pieChartData) ? pieChartData : []);
+        setBalance(balanceData || {});
         setAlertas(alertasData?.alertas || []);
-        setPedidos(pedidosData || []);
 
         } catch (err) {
         console.error(err);
-        setError("Error al cargar los datos del dashboard");
+        setError("Error al cargar los datos principales del dashboard");
         } finally {
         setLoading(false);
         }
+    }, []);
+
+
+    const fetchSecondaryData = useCallback(async () => {
+        try {
+        const [chartData, pieChartData, pedidosData] = await Promise.all([
+            getDataChart(),
+            getPieChart(mes, anio),
+            getPedidos()
+        ]);
+
+        setChart(Array.isArray(chartData) ? chartData : []);
+        setPieChart(Array.isArray(pieChartData) ? pieChartData : []);
+        setPedidos(pedidosData || []);
+
+        } catch (err) {
+        console.error("Error al cargar datos secundarios", err);
+        }
     }, [mes, anio]);
 
-    // Caragr los datos al montar el componente
+    
+    // Carga inicial
     useEffect(() => {
-        fetchData()
-    }, [fetchData])
+        fetchCoreData();
+        fetchSecondaryData();
+    }, [fetchCoreData, fetchSecondaryData]);
 
+    // Refresco de alertas (30s)
     useEffect(() => {
         const interval = setInterval(async () => {
         try {
             const alertasData = await getAlertas();
-            setAlertas(alertasData?.alertas || []);
+            const nuevasAlertas = alertasData?.alertas || [];
+
+            setAlertas(prev =>
+            JSON.stringify(prev) === JSON.stringify(nuevasAlertas)
+                ? prev
+                : nuevasAlertas
+            );
         } catch (e) {
             console.error("Error al refrescar alertas", e);
         }
-        }, 30000); // 30s
+        }, 30000);
 
         return () => clearInterval(interval);
     }, []);
 
-    const alertasFiltradas = useMemo(() => {
-        if (filtro === "all") return alertas;
-        return alertas.filter(a => a.tipo === filtro || a.nivel === filtro);
-    }, [alertas, filtro]);
 
-    const seleccionarPedido = async (ids) => {
+    // Seleccionar pedido (con cache)
+    const seleccionarPedido = useCallback(async (ids) => {
         try {
-            if (!Array.isArray(ids) || ids.length === 0) return;
+        if (!Array.isArray(ids) || ids.length === 0) return;
 
-            const pedidosCompletos = await Promise.all(
-            ids.map(id => getDetallePedido(id))
-            );
+        const pedidosCompletos = await Promise.all(
+            ids.map(async (id) => {
+            if (detalleCache.current[id]) {
+                return detalleCache.current[id];
+            }
 
-            setDetallePedido(pedidosCompletos);
+            const data = await getDetallePedido(id);
+            detalleCache.current[id] = data;
+            return data;
+            })
+        );
+
+        setDetallePedido(pedidosCompletos);
         } catch (error) {
-            console.error("Error al obtener detalle del pedido", error);
+        console.error("Error al obtener detalle del pedido", error);
         }
-    };
+    }, []);
 
-    // Lo que devuelve el hook
+
     return {
+        // Datos
         balance,
         chart,
         pieChart,
 
+        // Filtros de fecha
         mes,
         anio,
         setMes,
         setAnio,
 
-        alertas: alertasFiltradas,
+        // Alertas
+        alertas,
         totalAlertas: alertas.length,
         filtro,
         setFiltro,
 
+        // Pedidos
         pedidos,
         detallePedido,
         seleccionarPedido,
         setDetallePedido,
 
+        // Estado
         loading,
         error,
-        fetchData
+
+        // Refetch manual
+        refetch: () => {
+        fetchCoreData();
+        fetchSecondaryData();
+        }
     };
 }
