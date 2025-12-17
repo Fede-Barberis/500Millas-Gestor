@@ -3,6 +3,7 @@ import ProduccionTable from '../components/ProduccionTabla'
 import ProduccionForm from '../components/ProduccionForm';
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import { Loading, ErrorMessage } from '../components/Loading';
 
 export default function Productos() {
     const { producciones, recetas, productos , deleteProduccion, modificarProduccion, loading, error, reload: fetchData } = useProduccionData();
@@ -24,8 +25,8 @@ export default function Productos() {
         setProduccionAEditar(null); // Limpiar al cerrar
     };
 
-    if (loading) return <p className="text-gray-500">Cargando...</p>
-    if (error) return <p className="text-red-500">{error}</p>
+    if (loading) return <Loading />;
+    if (error) return <ErrorMessage error={error} />;
 
     return (
         <div className="px-6 py-2 space-y-6">

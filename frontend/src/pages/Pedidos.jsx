@@ -4,6 +4,7 @@ import usePedidoData from "../hooks/usePedidoData";
 import { useProductoData } from "../hooks/useProductoData.js";
 import PedidoTable from "../components/PedidoTabla.jsx";
 import PedidoForm from "../components/PedidoForm.jsx";
+import { Loading, ErrorMessage } from "../components/Loading.jsx";
 
 export default function Ventas() {
     const { pedidos, loading, error, reload: fetchData, modificarPedido, deletePedido } = usePedidoData();
@@ -27,8 +28,8 @@ export default function Ventas() {
         setPedidoAEditar(null); // Limpiar al cerrar
     };
 
-    if (loading) return <p className="text-gray-500">Cargando...</p>
-    if (error) return <p className="text-red-500">{error}</p>
+    if (loading) return <Loading />;
+    if (error) return <ErrorMessage error={error} />;
 
     return (
         <div className="px-6 py-2 space-y-6">

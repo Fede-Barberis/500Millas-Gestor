@@ -1,11 +1,11 @@
-import StatsCards from "../components/StatsCards";
 import { useDashboardData } from "../hooks/useDashboardData";
 import IncomeExpenseChart from "../components/IncomeExpenseChart";
 import TopVentasChart from "../components/TopVentasChart";
 import AlertasDashboard from "../components/AlertasDashboard";
 import Calendario from "../components/Calendario";
 import ModalDetallePedido from "../components/ModalDetallePedido";
-import { Loading } from "../components/Loading";
+import { Loading, ErrorMessage } from "../components/Loading";
+import StatsCards from "../components/StatsCards";
 
 export default function Dashboard() {
     const {

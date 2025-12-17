@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { useVentaData } from "../hooks/useVentaData.js";
 import VentaTable from "../components/VentaTabla.jsx";
 import VentaForm from "../components/VentaForm.jsx";
+import { Loading, ErrorMessage } from "../components/Loading.jsx";
 
 export default function Ventas() {
     const { ventas, productos, loading, error, reload: fetchData, modificarVenta, deleteVenta } = useVentaData();
@@ -25,8 +26,8 @@ export default function Ventas() {
         setVentaAEditar(null); // Limpiar al cerrar
     };
 
-    if (loading) return <p className="text-gray-500">Cargando...</p>
-    if (error) return <p className="text-red-500">{error}</p>
+    if (loading) return <Loading />;
+    if (error) return <ErrorMessage error={error} />;
 
     return (
         <div className="px-6 py-2 space-y-6">

@@ -1,8 +1,9 @@
-import { Package, Plus, Edit2, Trash2, AlertCircle } from "lucide-react";
+import { Package, Plus } from "lucide-react";
 import { useState } from "react";
 import { useProductoData } from "../hooks/useProductoData.js";
 import ProductoCard from "../components/ProductoCard.jsx";
 import ProductoForm from "../components/ProductoForm.jsx";
+import { Loading, ErrorMessage } from "../components/Loading.jsx";
 
 export default function Productos() {
     const { productos, loading, error, deleteProducto, modificarProducto, movimientos, reload } = useProductoData();
@@ -24,8 +25,8 @@ export default function Productos() {
         setProductoAEditar(null); // Limpiar al cerrar
     };
 
-    if (loading) return <p className="text-gray-500">Cargando productos...</p>;
-    if (error) return <p className="text-red-500">{error}</p>;
+    if (loading) return <Loading />;
+    if (error) return <ErrorMessage error={error} />;
 
     return (
         <div className="px-6 py-2 space-y-8">

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Loader2, AlertCircle } from 'lucide-react';
 
 // Componente de Loading
@@ -15,10 +15,11 @@ export const Loading = ({ message = "Cargando...", size = "default" }) => {
         <p className="text-gray-600 text-sm">{message}</p>
         </div>
     );
-    };
+};
 
-    // Componente de Error
-    export const ErrorMessage = ({ error, onRetry }) => {
+
+// Componente de Error
+export const ErrorMessage = ({ error, onRetry }) => {
     const errorText = typeof error === 'string' ? error : error?.message || 'Ha ocurrido un error';
     
     return (
@@ -42,79 +43,4 @@ export const Loading = ({ message = "Cargando...", size = "default" }) => {
         </div>
         </div>
     );
-    };
-
-    // Demo de uso
-    const Demo = () => {
-    const [state, setState] = React.useState('normal');
-    const [data, setData] = React.useState(null);
-
-    const simulateLoading = () => {
-        setState('loading');
-        setTimeout(() => {
-        setState('normal');
-        setData('Datos cargados exitosamente');
-        }, 2000);
-    };
-
-    const simulateError = () => {
-        setState('error');
-    };
-
-    const handleRetry = () => {
-        setState('normal');
-        setData(null);
-    };
-
-    if (state === 'loading') return <Loading message="Cargando datos..." />;
-    if (state === 'error') return <ErrorMessage error="No se pudieron cargar los datos del servidor" onRetry={handleRetry} />;
-
-    return (
-        <div className="p-8 max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Componentes de Loading y Error</h1>
-        
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-lg font-semibold mb-4">Demostración</h2>
-            <div className="flex gap-3 mb-6">
-            <button
-                onClick={simulateLoading}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-            >
-                Simular Loading
-            </button>
-            <button
-                onClick={simulateError}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-            >
-                Simular Error
-            </button>
-            </div>
-            
-            {data && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-green-800">{data}</p>
-            </div>
-            )}
-        </div>
-
-        <div className="bg-gray-50 rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-3">Uso en tu código:</h2>
-            <pre className="bg-gray-800 text-gray-100 p-4 rounded-md text-sm overflow-x-auto">
-    {`import { Loading, ErrorMessage } from './components';
-
-    function MiComponente() {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-
-    if (loading) return <Loading />;
-    if (error) return <ErrorMessage error={error} />;
-
-    return <div>Contenido normal</div>;
-    }`}
-            </pre>
-        </div>
-        </div>
-    );
 };
-
-export default Demo;

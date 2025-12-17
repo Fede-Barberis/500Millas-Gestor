@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Plus, Package } from 'lucide-react';
 import MateriaPrimaCard from '../components/MateriaPrimaCard';
 import CompraMpForm from '../components/CompraMpForm';
+import { Loading, ErrorMessage } from '../components/Loading';
 
 export default function MateriaPrima() {
     const { materiaPrimas, comprasMp, loading, error, reload: fetchData, modificarCompraMp, deleteCompraMp } = useMateriaPrimaData();
@@ -25,8 +26,8 @@ export default function MateriaPrima() {
         setProduccionAEditar(null); // Limpiar al cerrar
     };
 
-    if (loading) return <p className="text-gray-500">Cargando...</p>
-    if (error) return <p className="text-red-500">{error}</p>
+    if (loading) return <Loading />;
+    if (error) return <ErrorMessage error={error} />;
 
     return (
         <div className="px-6 py-2 space-y-6">
