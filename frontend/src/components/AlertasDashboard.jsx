@@ -68,7 +68,7 @@ const AlertasDashboard = memo(function AlertasDashboard({ alertas, filtro, setFi
         </div>
 
         {/* LISTA */}
-        <ul className="space-y-2 max-h-[260px] overflow-y-auto pr-2">
+        <ul className="space-y-2 max-h-[400px] sm:max-h-[260px] overflow-y-auto pr-2">
             {alertasVisibles.map(alerta => {
             const Icon = iconMap[alerta.nivel];
             return (
