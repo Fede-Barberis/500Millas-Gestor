@@ -1,13 +1,19 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import useIsMobile from '../hooks/useIsMobile';
 
 export default function IncomeExpenseChart({ data }) {
+    const isMobile = useIsMobile();
+
+    const chartData = isMobile
+        ? data.slice(-3)   // mes actual
+        : data;   
     
     return (
         <div className="bg-white p-6 rounded-2xl shadow-xl">
             <h2 className="text-lg sm:text-2xl font-heading font-semibold text-center text-gray-800 mb-4">Ingresos vs Egresos</h2>
             <ResponsiveContainer width="100%" height={325}>
                 <AreaChart
-                    data={data}
+                    data={chartData}
                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
                     <defs>
