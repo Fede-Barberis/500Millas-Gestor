@@ -123,12 +123,12 @@ export default function Login() {
                 </form>
 
                 {/* Link a Register */}
-                <p className="text-center mt-6 text-white/70">
+                {/* <p className="text-center mt-6 text-white/70">
                     ¿No tienes cuenta?{" "}
                     <Link to="/auth/register" className="text-orange-300 hover:text-orange-200 font-semibold transition-colors">
                         Regístrate aquí
                     </Link>
-                </p>
+                </p> */}
             </div>
 
             <style>{`
