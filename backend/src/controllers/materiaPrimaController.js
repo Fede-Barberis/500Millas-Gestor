@@ -150,32 +150,40 @@ const materiaPrimaController =  {
             const pago = ["true", "1", 1, true].includes(isPagado);
 
             // Guardamos datos antiguos
-            const oldCantidad = parseFloat(compraMp.cantidad);
+            const oldCantidad = Number(compraMp.cantidad);
             const oldMateria = compraMp.id_materiaPrima;
 
-            const newCantidad = parseFloat(cantidad);
+            const newCantidad = Number(cantidad);
             const newMateria = id_materiaPrima;
 
+            // Detectar si solo cambia el estado de pago
+            const soloCambioEstado =
+                oldMateria === newMateria &&
+                oldCantidad === newCantidad;
 
             // Actualizar stock
+            if (!soloCambioEstado) {
 
-            // Si cambia la materia prima
-            if (oldMateria !== newMateria) {
-                // Devolver la cantidad al stock del ítem viejo
-                await actualizarStockMateriaPrima(oldMateria, oldCantidad, "sub", transaction);
+                // Si cambia la materia prima
+                if (oldMateria !== newMateria) {
+                    // Devolver la cantidad al stock del ítem viejo
+                    await actualizarStockMateriaPrima(oldMateria, oldCantidad, "sub", transaction);
 
-                // Sumar cantidad al nuevo ítem
-                await actualizarStockMateriaPrima(newMateria, newCantidad, "add", transaction);
-            }
-            else {
-                // Si no cambia la materia prima, pero sí la cantidad
-                if (oldCantidad !== newCantidad) {
-                    const diferencia = newCantidad - oldCantidad;
+                    // Sumar cantidad al nuevo ítem
+                    await actualizarStockMateriaPrima(newMateria, newCantidad, "add", transaction);
+                }
+                else {
+                    // Si no cambia la materia prima, pero sí la cantidad
+                    if (oldCantidad !== newCantidad) {
+                        const diferencia = newCantidad - oldCantidad;
 
-                    if (diferencia > 0) {
-                        await actualizarStockMateriaPrima(newMateria, diferencia, "add", transaction);
-                    } else {
-                        await actualizarStockMateriaPrima(newMateria, Math.abs(diferencia), "sub", transaction);
+                        if (diferencia !== 0) {
+                            if (diferencia > 0) {
+                                await actualizarStockMateriaPrima(newMateria, diferencia, "add", transaction);
+                            } else {
+                                await actualizarStockMateriaPrima(newMateria, Math.abs(diferencia), "sub", transaction);
+                            }
+                        }
                     }
                 }
             }
