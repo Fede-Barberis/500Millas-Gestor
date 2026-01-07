@@ -151,10 +151,10 @@ const materiaPrimaController =  {
 
             // Guardamos datos antiguos
             const oldCantidad = Number(compraMp.cantidad);
-            const oldMateria = compraMp.id_materiaPrima;
+            const oldMateria = Number(compraMp.id_materiaPrima);
 
             const newCantidad = Number(cantidad);
-            const newMateria = id_materiaPrima;
+            const newMateria = Number(id_materiaPrima);
 
             // Detectar si solo cambia el estado de pago
             const soloCambioEstado =
