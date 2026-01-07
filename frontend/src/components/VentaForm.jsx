@@ -6,6 +6,17 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { crearVenta } from "../api/ventaApi.js";
 
+const normalizarNumero = (valor) => {
+    if (valor === null || valor === undefined) return 0;
+
+    return Number(
+        String(valor)
+            .replace(/\./g, "") // elimina separadores de miles
+            .replace(",", ".")  // convierte coma en punto decimal
+    ) || 0;
+};
+
+
 export default function VentaForm({ productos = [], onClose, initialData, isEditing = false, onCreated, onSubmitVenta}) {
     const [isPagado, setIsPagado] = useState(initialData?.isPagado || false);
 
@@ -76,9 +87,10 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
     const detalles = watch("detalles");
     const calcularTotal = () => {
         if (!detalles) return 0;
+
         return detalles.reduce((sum, d) => {
-            const cantidad = parseFloat(d.cantidad) || 0;
-            const precio = parseFloat(d.precio) || 0;
+            const cantidad = normalizarNumero(d.cantidad);
+            const precio = normalizarNumero(d.precio);
             return sum + (cantidad * precio);
         }, 0);
     };
@@ -345,7 +357,10 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
                                             <div className="mt-3 pt-3 border-t border-gray-200 text-right">
                                                 <span className="text-sm text-gray-600">Subtotal: </span>
                                                 <span className="text-lg font-bold text-green-600">
-                                                    ${((parseFloat(detalles[index].cantidad) || 0) * (parseFloat(detalles[index].precio) || 0)).toLocaleString('es-AR')}
+                                                ${(
+                                                    normalizarNumero(detalles[index].cantidad) *
+                                                    normalizarNumero(detalles[index].precio)
+                                                ).toLocaleString("es-AR")}
                                                 </span>
                                             </div>
                                         )}
