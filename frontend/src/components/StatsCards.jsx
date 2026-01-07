@@ -47,13 +47,13 @@ export default function StatsCards({ balance }) {
         >
             <div
             className={`w-28 h-28 rounded-full border-8 ${
-                balance.crecimiento >= 0 ? "border-emerald-400" : "border-red-500"
+                balance.rentabilidad >= 0 ? "border-emerald-400" : "border-red-500"
             } flex items-center justify-center`}
             >
                 <span
-                    className={`text-white ${ Math.abs(balance.crecimiento) > 99 ? "text-xl" : "text-2xl"} font-semibold`}
+                    className={`text-white ${ Math.abs(balance.rentabilidad) > 99 ? "text-xl" : "text-2xl"} font-semibold`}
                 >
-                    {(balance.crecimiento || 0).toLocaleString("es-AR", {
+                    {(balance.rentabilidad || 0).toLocaleString("es-AR", {
                     minimumFractionDigits: 1,
                     maximumFractionDigits: 1,
                     })}

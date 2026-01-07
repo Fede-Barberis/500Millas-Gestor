@@ -3,15 +3,19 @@ import { Sequelize, Op } from "sequelize";
 
 async function calcularTotalesPorMes(inicio, fin) {
     try {
-        // Total ingresos (ventas del mes)
-        const totalIngresos = await VentaDetalle.findOne({ 
-            attributes: [
-                [Sequelize.literal('SUM(VentaDetalle.precio * VentaDetalle.cantidad)'), 'total']
-            ],
+        // INGRESOS (ventas pagadas)
+        const ingresos = await VentaDetalle.findAll({
+            attributes: [[
+                Sequelize.fn(
+                    'SUM',
+                    Sequelize.literal('precio * cantidad')
+                ),
+                'total'
+            ]],
             include: [{
-                model: Venta, 
+                model: Venta,
                 attributes: [],
-                required: true, // Asegura un INNER JOIN para el filtro
+                required: true,
                 where: {
                     fecha: { [Op.between]: [inicio, fin] },
                     isPagado: true
@@ -20,34 +24,34 @@ async function calcularTotalesPorMes(inicio, fin) {
             raw: true
         });
 
-        // Manejar resultado nulo
-        const ingresosVentas = parseFloat(totalIngresos?.total || 0);
+        const ingresosVentas = parseFloat(ingresos[0]?.total || 0);
 
-
-        // Gastos materia prima
-        const totalMp = await CompraMP.findOne({
-            attributes: [[Sequelize.literal('SUM(precio * cantidad)'), 'total']],
-            where: { fecha: { [Op.between]: [inicio, fin] } },
+        // EGRESOS (compras MP pagadas)
+        const gastos = await CompraMP.findAll({
+            attributes: [[
+                Sequelize.fn(
+                    'SUM',
+                    Sequelize.literal('precio * cantidad')
+                ),
+                'total'
+            ]],
+            where: {
+                fecha: { [Op.between]: [inicio, fin] },
+                isPagado: true
+            },
             raw: true
         });
 
-        const gastosMp = parseFloat(totalMp?.total || 0);
-
-        // Totales
-        const totalGastos = gastosMp;
+        const totalGastos = parseFloat(gastos[0]?.total || 0);
         const balance = ingresosVentas - totalGastos;
-        const crecimiento = ingresosVentas > 0
-            ? ((balance / ingresosVentas) * 100).toFixed(1)
-            : 0;
 
-        return { ingresosVentas, totalGastos, balance, crecimiento };
+        return { ingresosVentas, totalGastos, balance };
 
     } catch (error) {
-        console.error("Error en calcularTotales:", error);
+        console.error("Error en calcularTotalesPorMes:", error);
         throw error;
     }
 }
-
 
 
 const dashboardController = {
@@ -55,51 +59,63 @@ const dashboardController = {
         try {
             const now = new Date();
 
-            // Rango del mes actual
             const inicioMesActual = new Date(now.getFullYear(), now.getMonth(), 1);
-            const finMesActual = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            const finMesActual = new Date(
+                now.getFullYear(),
+                now.getMonth() + 1,
+                0, 23, 59, 59, 999
+            );
 
-            // Rango del mes anterior
             const inicioMesAnterior = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            const finMesAnterior = new Date(now.getFullYear(), now.getMonth(), 0);
+            const finMesAnterior = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                0, 23, 59, 59, 999
+            );
 
-            // Calcular ambos
             const [actual, anterior] = await Promise.all([
                 calcularTotalesPorMes(inicioMesActual, finMesActual),
                 calcularTotalesPorMes(inicioMesAnterior, finMesAnterior),
             ]);
 
-            // Cálculo de crecimiento (comparación % mes a mes)
-            const crecimientoIngresos =
-                anterior.ingresosVentas > 0
+            // CRECIMIENTOS (%)
+            const crecimientoIngresos = anterior.ingresosVentas > 0
                 ? ((actual.ingresosVentas - anterior.ingresosVentas) / anterior.ingresosVentas) * 100
                 : 0;
 
-            const crecimientoGastos =
-                anterior.totalGastos > 0
+            const crecimientoGastos = anterior.totalGastos > 0
                 ? ((actual.totalGastos - anterior.totalGastos) / anterior.totalGastos) * 100
                 : 0;
 
-            const crecimientoBalance =
-                anterior.balance !== 0
+            const crecimientoBalance = anterior.balance !== 0
                 ? ((actual.balance - anterior.balance) / Math.abs(anterior.balance)) * 100
                 : 0;
-                
+
+            const rentabilidad = actual.ingresosVentas > 0
+                ? ((actual.balance / actual.ingresosVentas) * 100)
+                : 0;
+            
 
             res.json({
                 total_ingresos: actual.ingresosVentas,
                 total_gastos: actual.totalGastos,
                 balance: actual.balance,
-                crecimiento: actual.crecimiento,
+
+                rentabilidad: rentabilidad.toFixed(1),
+
                 crecimiento_ingresos: crecimientoIngresos.toFixed(1),
                 crecimiento_gastos: crecimientoGastos.toFixed(1),
                 crecimiento_balance: crecimientoBalance.toFixed(1),
             });
+
         } catch (error) {
             console.error("Error al obtener estadísticas:", error);
-            res.status(500).json({ error: "Error al obtener estadísticas del dashboard" });
+            res.status(500).json({
+                error: "Error al obtener estadísticas del dashboard"
+            });
         }
     },
+    
 
     async getDataChart(req, res) {
         try {
