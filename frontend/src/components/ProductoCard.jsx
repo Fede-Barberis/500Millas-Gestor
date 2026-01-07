@@ -47,7 +47,7 @@ export default function ProductoCard({ producto, onDelete, onEdit, movimientos }
     };
 
     const getStockMin = (id) => {
-        if (id === 1) return {
+        if (id === 4) return {
             label: "21",
         };
         return {
@@ -59,11 +59,11 @@ export default function ProductoCard({ producto, onDelete, onEdit, movimientos }
     const stockStatus = getStockStatus(producto.stock);
     const stockPercentage = Math.min((producto.stock / 100) * 100, 100);
 
-    // Imágenes de ejemplo
+    // Imágenes 
     const imagenesProductos = {
-        1: alfajorImg,
-        2: bolsa1Img,
-        3: bolsa2Img,
+        4: alfajorImg,
+        5: bolsa1Img,
+        6: bolsa2Img,
     };
 
     return (
