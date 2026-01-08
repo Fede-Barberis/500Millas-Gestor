@@ -73,10 +73,9 @@ const dashboardController = {
                 0, 23, 59, 59, 999
             );
 
-            const [actual, anterior] = await Promise.all([
-                calcularTotalesPorMes(inicioMesActual, finMesActual),
-                calcularTotalesPorMes(inicioMesAnterior, finMesAnterior),
-            ]);
+            const actual = await calcularTotalesPorMes(inicioMesActual, finMesActual);
+            const anterior = await calcularTotalesPorMes(inicioMesAnterior, finMesAnterior);
+
 
             // CRECIMIENTOS (%)
             const crecimientoIngresos = anterior.ingresosVentas > 0
