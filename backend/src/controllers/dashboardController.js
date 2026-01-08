@@ -4,13 +4,13 @@ import { Sequelize, Op } from "sequelize";
 async function calcularTotalesPorMes(inicio, fin) {
     try {
         // INGRESOS (ventas pagadas)
-        const ingresos = await VentaDetalle.findAll({
+        const ingresos = await VentaDetalle.findOne({
             attributes: [[
-                Sequelize.fn(
-                    'SUM',
-                    Sequelize.literal('precio * cantidad')
-                ),
-                'total'
+            Sequelize.fn(
+                'SUM',
+                Sequelize.literal('precio * cantidad')
+            ),
+            'total'
             ]],
             include: [{
                 model: Venta,
@@ -23,17 +23,17 @@ async function calcularTotalesPorMes(inicio, fin) {
             }],
             raw: true
         });
-
-        const ingresosVentas = parseFloat(ingresos[0]?.total || 0);
-
+    
+        const ingresosVentas = parseFloat(ingresos?.total || 0);
+    
         // EGRESOS (compras MP pagadas)
-        const gastos = await CompraMP.findAll({
+        const gastos = await CompraMP.findOne({
             attributes: [[
-                Sequelize.fn(
-                    'SUM',
-                    Sequelize.literal('precio * cantidad')
-                ),
-                'total'
+            Sequelize.fn(
+                'SUM',
+                Sequelize.literal('precio * cantidad')
+            ),
+            'total'
             ]],
             where: {
                 fecha: { [Op.between]: [inicio, fin] },
@@ -41,16 +41,17 @@ async function calcularTotalesPorMes(inicio, fin) {
             },
             raw: true
         });
-
-        const totalGastos = parseFloat(gastos[0]?.total || 0);
+    
+        const totalGastos = parseFloat(gastos?.total || 0);
+    
         const balance = ingresosVentas - totalGastos;
-
+    
         return { ingresosVentas, totalGastos, balance };
-
-    } catch (error) {
+    
+        } catch (error) {
         console.error("Error en calcularTotalesPorMes:", error);
         throw error;
-    }
+        }
 }
 
 
@@ -144,6 +145,7 @@ const dashboardController = {
                     [Sequelize.fn('MONTH', Sequelize.col('fecha')), 'mes'],
                     [Sequelize.literal('SUM(precio * cantidad)'), 'total']
                 ],
+                raw: true,
                 group: ['mes'],
                 order: [[Sequelize.literal('mes'), 'ASC']]
             });
@@ -190,7 +192,7 @@ const dashboardController = {
             const { month, year } = req.query;
 
             if(!month || !year){
-                res.status(400).json({
+                return res.status(400).json({
                     error: "Debe especificarse 'month' y 'year'"
                 })
             }
