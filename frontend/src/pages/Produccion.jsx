@@ -1,6 +1,7 @@
 import useProduccionData from '../hooks/useProduccionData'
 import ProduccionTable from '../components/ProduccionTabla'
 import ProduccionForm from '../components/ProduccionForm';
+import EstadisticasProduccion from '../components/EstadisticasProduccion';
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Loading, ErrorMessage } from '../components/Loading';
@@ -48,6 +49,11 @@ export default function Productos() {
                     Agregar Produccion
                 </button>
             </div>
+
+            <EstadisticasProduccion 
+                producciones={producciones} 
+                productos={productos} 
+            />
 
             <ProduccionTable 
                 producciones={producciones} 

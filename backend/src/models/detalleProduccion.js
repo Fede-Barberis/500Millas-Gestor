@@ -14,6 +14,11 @@ const DetalleProduccion = db.define("DetalleProduccion", {
         type: DataTypes.DECIMAL(10,2),
         allowNull: false
     },
+    tapas: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        default: 0
+    },
     fch_vencimiento: {
         type: DataTypes.DATEONLY,
         allowNull: false

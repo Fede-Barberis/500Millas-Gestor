@@ -37,6 +37,7 @@ export default function ProduccionTable({ producciones, productos, eliminarProdu
                     receta: String(p.Recetum?.cantidad ?? ""),
                     producto: d.Producto?.nombre,
                     cantidad: d.cantidad,
+                    tapas: d.tapas,
                     lote: d.lote,
                     vencimiento: d.fch_vencimiento
                 });
@@ -130,6 +131,14 @@ export default function ProduccionTable({ producciones, productos, eliminarProdu
                     </span>
                 );
             }
+        }),
+        columnHelper.accessor("tapas", {
+            header: "Tapas",
+            cell: info => (
+                <span className="font-mono text-sm bg-purple-200 px-2 py-1 rounded-lg">
+                    {info.getValue()}
+                </span>
+            )
         }),
         columnHelper.accessor("lote", {
             header: "Lote",

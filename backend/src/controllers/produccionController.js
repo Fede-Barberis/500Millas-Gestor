@@ -85,11 +85,19 @@ const produccionController = {
             // Crear detalles y actualizar stocks
             for (const det of detalles) {
                 const { id_producto, cantidad, fch_vencimiento, lote } = det;
+                
+                const producto = await Producto.findByPk(id_producto);
+
+                // Calcular tapas según tipo de producto
+                const tapas = producto.nombre === "Alfajor" 
+                    ? cantidad * 12 * 3 
+                    : cantidad * 48;
 
                 await DetalleProduccion.create({
                     id_produccion: produccion.id_produccion,
                     id_producto,
                     cantidad,
+                    tapas,
                     fch_vencimiento,
                     lote
                 }, { transaction: t });
@@ -155,12 +163,19 @@ const produccionController = {
             await procesarReceta(id_receta, "sub", t);
 
             for (const det of detalles) {
+                const producto = det.Producto || await Producto.findByPk(det.id_producto);
+
+                const tapas = producto.nombre === "Alfajor"
+                    ? det.cantidad * 12 * 3
+                    : det.cantidad * 48;
+
                 await DetalleProduccion.create({
                     id_produccion: id,
                     id_producto: det.id_producto,
                     cantidad: det.cantidad,
                     lote: det.lote,
-                    fch_vencimiento: det.fch_vencimiento
+                    fch_vencimiento: det.fch_vencimiento,
+                    tapas
                 }, { transaction: t });
 
                 await actualizarStockProducto(det.id_producto, det.cantidad, "add", t);
