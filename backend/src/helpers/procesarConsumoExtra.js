@@ -1,7 +1,7 @@
 import { ConsumoExtra, RecetaMateriaPrima } from "../models/index.js";
 import actualizarStockMateriaPrima from "./actualizarStockMateriaPrima.js";
 
-export default async function procesarConsumosExtra(
+export default async function procesarConsumoExtra(
     id_producto,
     cantidad,
     operacion,
@@ -13,7 +13,8 @@ export default async function procesarConsumosExtra(
     });
 
     for (const ext of extras) {
-        // Materia prima directa
+
+        // MP directa (dulce, glasee, etc)
         if (ext.id_materiaPrima) {
             const total = (cantidad * ext.cantidad_por_lote) / ext.lote_equivale;
 
@@ -28,6 +29,7 @@ export default async function procesarConsumosExtra(
         // Receta completa
         if (ext.id_receta) {
             const lotes = Math.ceil(cantidad / ext.lote_equivale);
+
             const ingredientes = await RecetaMateriaPrima.findAll({
                 where: { id_receta: ext.id_receta },
                 transaction

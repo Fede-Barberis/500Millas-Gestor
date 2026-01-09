@@ -7,7 +7,7 @@ export const getMateriaPrima = async () => {
     } catch (error) {
         return {
             ok: false,
-            error: error.response.data.error || error.response.data.message || 'Error al devolver materia primas'
+            error: error.response.data.error || error.response?.data?.message || 'Error al devolver materia primas'
         };
     }
 };
@@ -19,7 +19,7 @@ export const getComprasMp = async () => {
     } catch (error) {
         return {
             ok: false,
-            error: error.response.data.error || error.response.data.message || 'Error al devolver compras de materia prima'
+            error: error.response.data.error || error.response?.data?.message || 'Error al devolver compras de materia prima'
         };
     }
 };
@@ -34,7 +34,7 @@ export const crearCompraMp = async (payload) => {
     } catch (error) {
         return {
             ok: false,
-            error: error.response.data.error || error.response.data.message || 'Error al crear compraMp'
+            error: error.response.data.error || error.response?.data?.message || 'Error al crear compraMp'
         };
     }
 }; 
@@ -42,11 +42,11 @@ export const crearCompraMp = async (payload) => {
 export const eliminarCompraMp = async (id_compra) => {
     try {
         const res = await api.delete(`/materiaPrima/compraMp/${id_compra}`);
-        return res.data
+        return res.data 
     } catch (error) {
         return {
             ok: false,
-            error: error.response?.data?.error || error.res.data.message || 'Error al eliminar compraMp'
+            error: error.response?.data?.error || error.response?.data?.message || 'Error al eliminar compraMp'
         };
     }
 }

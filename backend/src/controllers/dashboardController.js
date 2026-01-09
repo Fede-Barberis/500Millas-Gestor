@@ -31,7 +31,7 @@ async function calcularTotalesPorMes(inicio, fin) {
             attributes: [[
             Sequelize.fn(
                 'SUM',
-                Sequelize.literal('precio * cantidad')
+                Sequelize.literal('precio')
             ),
             'total'
             ]],
@@ -119,64 +119,87 @@ const dashboardController = {
 
     async getDataChart(req, res) {
         try {
-            // Ingresos por mes
+            const year = new Date().getFullYear();
+
+            // INGRESOS por mes (ventas pagadas)
             const ingresosPorMes = await VentaDetalle.findAll({
                 attributes: [
-                    [Sequelize.fn('MONTH', Sequelize.col('Ventum.fecha')), 'mes'], 
+                    [Sequelize.fn('MONTH', Sequelize.col('Ventum.fecha')), 'mes'],
+                    [Sequelize.fn('YEAR', Sequelize.col('Ventum.fecha')), 'anio'],
                     [Sequelize.literal('SUM(VentaDetalle.precio * VentaDetalle.cantidad)'), 'total']
                 ],
                 include: [{
                     model: Venta,
                     attributes: [],
                     where: {
-                        isPagado: true
+                        isPagado: true,
+                        fecha: {
+                            [Op.between]: [
+                                `${year}-01-01`,
+                                `${year}-12-31`
+                            ]
+                        }
                     },
-                    required: true 
+                    required: true
                 }],
-                group: [Sequelize.fn('MONTH', Sequelize.col('Ventum.fecha'))], // Agrupar por mes de Venta
-                order: [[Sequelize.literal('mes'), 'ASC']],
-                raw: true,
-                subQuery: false
+                group: ['anio', 'mes'],
+                order: [
+                    [Sequelize.literal('anio'), 'ASC'],
+                    [Sequelize.literal('mes'), 'ASC']
+                ],
+                raw: true
             });
-
-            // Egresos por mes (materia prima)
+            
+    
+            // EGRESOS por mes (compras MP PAGADAS)
             const egresosMP = await CompraMP.findAll({
                 attributes: [
                     [Sequelize.fn('MONTH', Sequelize.col('fecha')), 'mes'],
-                    [Sequelize.literal('SUM(precio * cantidad)'), 'total']
+                    [Sequelize.fn('YEAR', Sequelize.col('fecha')), 'anio'],
+                    [Sequelize.literal('SUM(precio)'), 'total']
                 ],
-                raw: true,
-                group: ['mes'],
-                order: [[Sequelize.literal('mes'), 'ASC']]
+                where: {
+                    isPagado: true,
+                    fecha: {
+                        [Op.between]: [
+                            `${year}-01-01`,
+                            `${year}-12-31`
+                        ]
+                    }
+                },
+                group: ['anio', 'mes'],
+                order: [
+                    [Sequelize.literal('anio'), 'ASC'],
+                    [Sequelize.literal('mes'), 'ASC']
+                ],
+                raw: true
             });
-
-            // Crear arreglo de meses (1–12)
+            
+    
+            // Meses 1–12
             const meses = Array.from({ length: 12 }, (_, i) => i + 1);
-
+    
             const data = meses.map(mes => {
-                // Acceder directamente a 'mes' y 'total' del objeto plano
-                const ingreso = ingresosPorMes.find(i => i.mes == mes); 
-                const egresoMP = egresosMP.find(e => e.mes == mes);
-                
-                // Acceder directamente a 'total' 
-                const totalIngresos = parseFloat(ingreso?.total || 0);
-                const totalMP = parseFloat(egresoMP?.total || 0)
-
+                const ingreso = ingresosPorMes.find(i => i.mes == mes);
+                const egreso = egresosMP.find(e => e.mes == mes);
+    
                 return {
                     mes,
-                    ingresos: totalIngresos,
-                    egresos: totalMP
+                    ingresos: parseFloat(ingreso?.total || 0),
+                    egresos: parseFloat(egreso?.total || 0)
                 };
             });
-
-            // Convertir número de mes a nombre abreviado
+    
+            // Nombre de meses
             const nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    
             const dataConNombres = data.map(d => ({
                 ...d,
                 mes: nombresMeses[d.mes - 1]
             }));
-
+    
             res.json(dataConNombres);
+    
         } catch (error) {
             console.error("Error al obtener estadísticas del gráfico:", error);
             res.status(500).json({

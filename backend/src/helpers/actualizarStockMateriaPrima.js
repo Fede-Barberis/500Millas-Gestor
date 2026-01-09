@@ -10,10 +10,12 @@ export default async function actualizarStockMateriaPrima(
 
     if (!mp) throw new Error("Materia prima no encontrada");
 
+    const cantidadReal = parseFloat(cantidad); 
+
     const nuevoStock =
         operacion === "add"
-            ? parseFloat(mp.stock) + parseFloat(cantidad)
-            : parseFloat(mp.stock) - parseFloat(cantidad);
+            ? parseFloat(mp.stock) + cantidadReal
+            : parseFloat(mp.stock) - cantidadReal;
 
     if (nuevoStock < 0) {
         throw new Error(`Stock insuficiente de ${mp.nombre}`);
@@ -21,3 +23,5 @@ export default async function actualizarStockMateriaPrima(
 
     await mp.update({ stock: nuevoStock }, { transaction });
 }
+
+
