@@ -28,18 +28,24 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
 
     // Normalizar compras mp
     const rows = useMemo(() => {
-        return (comprasMp ?? []).map(c => ({
-            id_compra: c.id_compra,
-            fecha: c.fecha,
-            materiaPrima: c.MateriaPrima?.nombre,
-            cantidad: c.cantidad,
-            lote: c.lote,
-            vencimiento: c.fch_vencimiento,
-            precio: c.precio,
-            isPagado: c.isPagado,
-            total: c.precio * c.cantidad
-        }));
+        return (comprasMp ?? []).map(c => {
+            const factor = c.MateriaPrima?.factor_conversion ?? 1;
+    
+            return {
+                id_compra: c.id_compra,
+                fecha: c.fecha,
+                materiaPrima: c.MateriaPrima?.nombre,
+                cantidad: c.cantidad,
+                conversion: factor,
+                lote: c.lote,
+                vencimiento: c.fch_vencimiento,
+                precio: c.precio / c.cantidad,
+                isPagado: c.isPagado,
+                total: c.precio
+            };
+        });
     }, [comprasMp]);
+    
 
 
     // Filtros
@@ -133,19 +139,27 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
                 );
             }
         }),
-        columnHelper.accessor("precio", {
-            header: "precio u.",
+        columnHelper.accessor("conversion", {
+            header: "Conversion",
             cell: info => (
-                <span className="font-mono text-sm bg-yellow-100 px-2 py-1 rounded">
-                    {info.getValue()}
+                <span className="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold">
+                    x {info.getValue()}
                 </span>
             )
-        }),
+        }),        
+        columnHelper.accessor("precio", {
+            header: "Precio u.",
+            cell: info => (
+                <span className="font-mono text-sm bg-yellow-100 px-2 py-1 rounded">
+                    ${Number(info.getValue()).toFixed(2)}
+                </span>
+            )
+        }),        
         columnHelper.accessor("total", {
             header: "total",
             cell: info => (
                 <span className="font-mono text-sm bg-orange-100 px-2 py-1 rounded">
-                    {info.getValue()}
+                    ${Number(info.getValue()).toFixed(2)}
                 </span>
             )
         }),

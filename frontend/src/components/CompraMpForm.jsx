@@ -9,8 +9,10 @@ import { Package, Calendar, DollarSign, Hash, CheckCircle, X } from "lucide-reac
 
 export default function CompraMpForm({ materiaPrimas, onCreated, onClose, initialData, isEditing = false, onSubmitCompra }) {
     const [isPagado, setIsPagado] = useState(initialData?.isPagado ?? false);
+    const [mpSeleccionada, setMpSeleccionada] = useState(null);
+
     
-    const { register, handleSubmit, reset, setValue, formState: { errors }} = useForm ({
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors }} = useForm ({
         resolver: yupResolver(compraMpSchema),
         defaultValues: {
             fecha: "",
@@ -23,6 +25,13 @@ export default function CompraMpForm({ materiaPrimas, onCreated, onClose, initia
         }
     })
 
+    useEffect(() => {
+        const mp = materiaPrimas.find(
+            m => m.id_materiaPrima === Number(watch("id_materiaPrima"))
+        );
+        setMpSeleccionada(mp || null);
+    }, [watch("id_materiaPrima"), materiaPrimas]);
+    
 
     useEffect(() => {
         if (initialData) {
@@ -196,10 +205,25 @@ export default function CompraMpForm({ materiaPrimas, onCreated, onClose, initia
                                     <input
                                         type="number"
                                         {...register("cantidad")}
-                                        step="0.01"
-                                        placeholder="0.00"
+                                        step="1"
+                                        placeholder="0"
                                         className="w-full px-3 py-2 pr-16 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400"
                                     />
+                                    {mpSeleccionada && (
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            1 unidad = {mpSeleccionada.factor_conversion} {mpSeleccionada.unidad_base}
+                                        </p>
+                                    )}
+                                    {mpSeleccionada && watch("cantidad") && (
+                                        <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-700">
+                                            Esta compra agregará{" "}
+                                            <strong>
+                                                {Number(watch("cantidad")) * mpSeleccionada.factor_conversion}{" "}
+                                                {mpSeleccionada.unidad_base}
+                                            </strong>{" "}
+                                            al stock
+                                        </div>
+                                    )}
                                 </div>
                                 {errors.cantidad && (
                                     <p className="text-red-500 text-sm flex items-center gap-1">
@@ -212,7 +236,7 @@ export default function CompraMpForm({ materiaPrimas, onCreated, onClose, initia
                             <div className="space-y-2">
                                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                                     <DollarSign className="w-4 h-4 text-blue-600" />
-                                    Precio Unitario
+                                    Precio Total
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
