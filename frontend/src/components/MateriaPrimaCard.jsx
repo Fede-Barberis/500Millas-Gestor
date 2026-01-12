@@ -113,7 +113,7 @@ export default function MateriaPrimaCard({ materiaPrima }) {
                                     {parseFloat(materiaPrima.stock).toFixed(2)}
                                 </span>
                                 <span className="text-sm text-gray-500 font-medium">
-                                    {materiaPrima.unidad_medida || "kg"}
+                                    {materiaPrima.unidad_base }
                                 </span>
                             </div>
                         </div>

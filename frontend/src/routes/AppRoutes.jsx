@@ -11,6 +11,7 @@ import Productos from "../pages/Productos.jsx";
 import MateriaPrima from "../pages/MateriaPrima.jsx";
 import Ventas from "../pages/Ventas.jsx";
 import Pedidos from "../pages/Pedidos.jsx"
+import Reportes from "../pages/Reporte.jsx"
 
 export default function AppRouter() {
     return (
@@ -47,6 +48,7 @@ export default function AppRouter() {
                 <Route path="/materiaPrima" element={<MateriaPrima />} />
                 <Route path="/ventas" element={<Ventas />} />
                 <Route path="/pedidos" element={<Pedidos />} />
+                <Route path="/reportes" element={<Reportes />} />
             </Route>
             
             <Route path="*" element={<Navigate to="/auth/login" />} />

@@ -14,6 +14,7 @@ import Receta from "./receta.js";
 import ProductoReceta from "./productoReceta.js";
 import ConsumoExtra from "./consumoExtra.js";
 import VentaDetalle from "./detalleVenta.js";
+import ReporteMensual from "./reporteMensual.js";
 
 // Definir asociaciones entre modelos
 
@@ -108,5 +109,6 @@ export {
     Produccion,
     DetalleProduccion,
     ConsumoExtra,
-    VentaDetalle
+    VentaDetalle,
+    ReporteMensual
 };

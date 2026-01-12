@@ -9,7 +9,9 @@ import productoRoutes from './routes/productoRoutes.js'
 import materiaPrimaRoutes from './routes/materiaPrimaRoutes.js'
 import ventaRoutes from './routes/ventaRoutes.js'
 import pedidoRoutes from './routes/pedidoRoutes.js'
+import reporteRoutes from './routes/reporteRoutes.js'
 import { authenticateToken } from "./middlewares/authMiddlewares.js";
+import { iniciarCierreMensualCron } from "./cron/cierreMensualCron.js";
 
 dotenv.config();
 const app = express();         
@@ -19,6 +21,8 @@ const PORT = process.env.PORT || 3000;
 app.use(cors())            // Permite CORS para todas las rutas
 app.use(express.json())    // Permite leer JSON en los requests
 
+// 🚀 iniciar cron
+iniciarCierreMensualCron();
 
 //* Rutas de la api
 app.use("/api/auth", authRoutes);
@@ -28,6 +32,8 @@ app.use("/api/producto", productoRoutes);
 app.use("/api/materiaPrima", materiaPrimaRoutes);
 app.use("/api/ventas", ventaRoutes);
 app.use("/api/pedidos", pedidoRoutes);
+app.use("/api/reportes", reporteRoutes);
+
 
 // Ruta de prueba protegida
 app.get("/api/me", authenticateToken, (req, res) => {

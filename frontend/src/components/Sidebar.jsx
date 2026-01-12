@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, Package, Wheat, LogOut, Handshake, CalendarCheck2, CirclePlus, X } from "lucide-react"; 
+import { Home, Package, Wheat, LogOut, Handshake, CalendarCheck2, CirclePlus, X, ChartNoAxesCombined } from "lucide-react"; 
 import { useAuth } from "../context/AuthContext";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
@@ -196,7 +196,30 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                             Pedidos
                         </span>
                     </NavLink>
+
+                    <NavLink
+                        to="/reportes"
+                        onClick={handleLinkClick}
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 p-3 rounded-lg transition-all duration-200
+                            ${isActive 
+                                ? "bg-yellow-100 text-yellow-700 font-semibold shadow-sm" 
+                                : "text-gray-700 hover:bg-gray-100"
+                            }
+                            ${isHovered ? "md:justify-start" : "md:justify-center"}`
+                        }
+                    >
+                        <ChartNoAxesCombined size={22} className="flex-shrink-0" strokeWidth={1.5} />
+                        <span className={`
+                            whitespace-nowrap transition-all duration-200
+                            ${isHovered ? "md:opacity-100 md:block" : "md:opacity-0 md:hidden"}
+                        `}>
+                            Reportes
+                        </span>
+                    </NavLink>
+
                 </nav>
+                
 
                 {/* 🔚 Logout al fondo */}
                 <div className="p-3 border-t border-gray-200">
