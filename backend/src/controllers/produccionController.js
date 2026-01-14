@@ -89,9 +89,10 @@ const produccionController = {
                 const producto = await Producto.findByPk(id_producto);
 
                 // Calcular tapas según tipo de producto
-                const tapas = producto.nombre === "Alfajor" 
-                    ? cantidad * 12 * 3 
-                    : cantidad * 48;
+                const tapas =
+                    producto.nombre === "Alfajor"
+                        ? cantidad * 12 * 3
+                        : cantidad * 48;
 
                 await DetalleProduccion.create({
                     id_produccion: produccion.id_produccion,
