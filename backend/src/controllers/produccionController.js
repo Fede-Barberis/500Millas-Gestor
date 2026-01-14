@@ -90,7 +90,7 @@ const produccionController = {
 
                 // Calcular tapas según tipo de producto
                 const tapas =
-                    producto.nombre === "Alfajor"
+                    producto.id_producto === 4 || 1
                         ? cantidad * 12 * 3
                         : cantidad * 48;
 
