@@ -21,7 +21,11 @@ const Producto = db.define('Producto', {
         type: DataTypes.STRING,
         allowNull: true,
         defaultValue: null
-    }
+    },
+    tipo_producto: {
+        type: DataTypes.ENUM("ALFAJOR", "GALLETAS"),
+        allowNull: false
+    },
 }, {
     tableName: "productos",
     timestamps: false
