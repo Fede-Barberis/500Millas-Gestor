@@ -349,7 +349,7 @@ const dashboardController = {
                 alertas.push({
                     tipo: "pago",
                     nivel: "warning",
-                    mensaje: `Compra impaga de ${p.MateriaPrima.nombre} ($${(p.precio * p.cantidad).toFixed(2)})`,
+                    mensaje: `Compra impaga de ${p.MateriaPrima.nombre} ($${p.precio})`,
                 });
             });
 
