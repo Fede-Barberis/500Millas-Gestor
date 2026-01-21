@@ -246,7 +246,7 @@ const dashboardController = {
                             [Op.and]: [
                                 Sequelize.where(Sequelize.fn('MONTH', Sequelize.col('fecha')), mes),
                                 Sequelize.where(Sequelize.fn('YEAR', Sequelize.col('fecha')), anio),
-                                { isPagado: true }
+                                // { isPagado: true }
                             ]
                         }
                     },
