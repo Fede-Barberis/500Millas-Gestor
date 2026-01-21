@@ -336,9 +336,9 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
             </div>
 
             {/* TABLA */}
-            <div className="overflow-x-auto">
+            <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
                 <table className="w-full">
-                    <thead>
+                    <thead className="sticky top-0">
                         {table.getHeaderGroups().map((hg) => (
                             <tr key={hg.id} className="bg-gray-100">
                                 {hg.headers.map((header) => (

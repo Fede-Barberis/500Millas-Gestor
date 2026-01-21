@@ -306,9 +306,9 @@ export default function ProduccionTable({ producciones, productos, eliminarProdu
             </div>
 
             {/* Tabla */}
-            <div className="overflow-x-auto">
+            <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
                 <table className="w-full">
-                    <thead>
+                    <thead className="sticky top-0">
                         {table.getHeaderGroups().map(headerGroup => (
                             <tr key={headerGroup.id} className="bg-gray-100 border-b border-gray-200">
                                 {headerGroup.headers.map(header => (

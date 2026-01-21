@@ -95,12 +95,12 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
             header: "ID",
             cell: info => (
                 <div className="flex items-center gap-2">
-                    <span className="font-medium">{info.getValue()}</span>
+                    <span className="text-sm font-semibold">{info.getValue()}</span>
                 </div>
             )
         }),
         columnHelper.accessor("fecha", {
-            header: "Fecha Compra",
+            header: "Compra",
             cell: info => {
                 const fechaStr = info.getValue();
                 const [year, month, day] = fechaStr.split('-');
@@ -109,7 +109,7 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
                 return (
                     <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium">{fecha.toLocaleDateString('es-ES')}</span>
+                        <span className="text-sm font-medium">{fecha.toLocaleDateString('es-ES')}</span>
                     </div>
                 )
             }
@@ -119,7 +119,7 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
             cell: info => (
                 <div className="flex items-center gap-2">
                     <Wheat className="w-4 h-4 text-blue-400" />
-                    <span className="font-semibold text-gray-700">{info.getValue()}</span>
+                    <span className="text-sm font-semibold text-gray-700">{info.getValue() === 'DULCE DE LECHE' ? 'DDL' : info.getValue()}</span>
                 </div>
             )
         }),
@@ -148,10 +148,10 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
             )
         }),        
         columnHelper.accessor("precio", {
-            header: "Precio u.",
+            header: "Precio",
             cell: info => (
                 <span className="font-mono text-sm bg-yellow-100 px-2 py-1 rounded">
-                    ${Number(info.getValue()).toFixed(2)}
+                    ${Number(info.getValue()).toFixed(0)}
                 </span>
             )
         }),        
@@ -159,7 +159,7 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
             header: "total",
             cell: info => (
                 <span className="font-mono text-sm bg-orange-100 px-2 py-1 rounded">
-                    ${Number(info.getValue()).toFixed(2)}
+                    ${Number(info.getValue()).toFixed(0)}
                 </span>
             )
         }),
@@ -172,7 +172,7 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
             )
         }),
         columnHelper.accessor("vencimiento", {
-            header: "Vencimiento",
+            header: "Vto.",
             cell: info => {
                 const fechaStr = info.getValue();
                 const [year, month, day] = fechaStr.split('-');
@@ -356,9 +356,9 @@ export default function MateriaPrimaTable({ materiaPrimas, comprasMp, eliminarMa
             </div>
 
             {/* Tabla */}
-            <div className="overflow-x-auto">
+            <div className="max-h-[540px] overflow-y-auto overflow-x-auto">
                 <table className="w-full">
-                    <thead>
+                    <thead className="sticky top-0">
                         {table.getHeaderGroups().map(headerGroup => (
                             <tr key={headerGroup.id} className="bg-gray-100 border-b border-gray-200">
                                 {headerGroup.headers.map(header => (
