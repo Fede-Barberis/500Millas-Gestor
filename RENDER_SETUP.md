@@ -25,6 +25,11 @@ JWT_SECRET=un_super_secreto_!123
 JWT_EXPIRES_IN=7d
 ```
 
+### 4. Scheduler de Cierre Mensual
+```
+CRON_SECRET=un_token_largo_y_unico
+```
+
 ## Pasos para Configurar en Render
 
 ### 1. Ir a la configuración del servicio
@@ -71,6 +76,45 @@ Asegúrate de tener esta configuración:
 - ✅ NO dependas del archivo `.env` en producción
 - ✅ Configura todas las variables directamente en Render
 - ✅ Reinicia el servicio después de agregar variables
+
+## Cierre Mensual Automático (Render + Vercel)
+
+El backend ahora expone un endpoint de scheduler:
+
+- `POST /api/reportes/cerrar-mes-cron`
+- `GET /api/reportes/cerrar-mes-cron`
+
+Autenticación del endpoint:
+
+- Header `x-cron-secret: <CRON_SECRET>`
+- o `Authorization: Bearer <CRON_SECRET>`
+
+### Configuración recomendada en Render Cron Job
+
+1. Crear un nuevo servicio `Cron Job` en Render.
+2. Schedule: `5 0 1 * *` (día 1 de cada mes, 00:05 del timezone del servicio).
+3. Comando (ejemplo):
+
+```bash
+curl -sS -X POST "$BACKEND_URL/api/reportes/cerrar-mes-cron" \
+  -H "x-cron-secret: $CRON_SECRET"
+```
+
+Variables para el cron job:
+
+- `BACKEND_URL=https://tu-backend.onrender.com`
+- `CRON_SECRET` (igual al del backend web)
+
+### Configuración recomendada en Vercel Cron
+
+Vercel dispara con `GET`, por eso también está habilitado `GET /cerrar-mes-cron`.
+Configurar cron mensual apuntando a:
+
+- `/api/reportes/cerrar-mes-cron`
+
+y usar `CRON_SECRET` en Vercel para que envíe:
+
+- `Authorization: Bearer <CRON_SECRET>`
 
 ## Comandos útiles para debugging
 

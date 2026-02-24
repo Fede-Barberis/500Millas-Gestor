@@ -3,6 +3,14 @@ import path from "path";
 import fs from "fs";
 import ReporteMensual from "../models/reporteMensual.js";
 
+function obtenerMesAnterior(fecha = new Date()) {
+    const anterior = new Date(fecha.getFullYear(), fecha.getMonth() - 1, 1);
+    return {
+        mes: anterior.getMonth() + 1,
+        año: anterior.getFullYear()
+    };
+}
+
 const reportesController = {
 
     async cerrarMes(req, res) {
@@ -23,6 +31,60 @@ const reportesController = {
 
         } catch (error) {
             res.status(400).json({
+                ok: false,
+                error: error.message
+            });
+        }
+    },
+
+    async cerrarMesCron(req, res) {
+        try {
+            const configuredSecret = process.env.CRON_SECRET;
+            const providedSecret = req.headers["x-cron-secret"];
+            const authHeader = req.headers.authorization || "";
+            const bearerSecret = authHeader.startsWith("Bearer ")
+                ? authHeader.slice(7)
+                : null;
+
+            if (!configuredSecret) {
+                return res.status(500).json({
+                    ok: false,
+                    error: "CRON_SECRET no configurado en el servidor"
+                });
+            }
+
+            if (providedSecret !== configuredSecret && bearerSecret !== configuredSecret) {
+                return res.status(401).json({
+                    ok: false,
+                    error: "No autorizado"
+                });
+            }
+
+            let { mes, año } = req.body ?? {};
+
+            if (!mes || !año) {
+                const anterior = obtenerMesAnterior(new Date());
+                mes = anterior.mes;
+                año = anterior.año;
+            }
+
+            const resultado = await cerrarMesProduccion(Number(mes), Number(año));
+
+            return res.json({
+                ok: true,
+                message: "Cierre mensual ejecutado por cron",
+                reporte: resultado.cierre
+            });
+        } catch (error) {
+            if (error.message?.includes("ya fue cerrado")) {
+                return res.status(200).json({
+                    ok: true,
+                    skipped: true,
+                    message: error.message
+                });
+            }
+
+            return res.status(400).json({
                 ok: false,
                 error: error.message
             });
