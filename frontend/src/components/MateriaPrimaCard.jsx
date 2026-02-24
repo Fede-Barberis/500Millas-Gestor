@@ -9,6 +9,8 @@ import defaultImg from "/assets/img/default.webp";
 
 
 export default function MateriaPrimaCard({ materiaPrima }) {
+    const stockActual = Number(materiaPrima.stock);
+    const stockMinimo = Number(materiaPrima.stock_minimo);
 
     // Imágenes según tipo de materia prima
     const imagenesMateriaPrima = {
@@ -61,7 +63,7 @@ export default function MateriaPrimaCard({ materiaPrima }) {
             label: "Óptimo"
         };
     };
-    const status = getStockStatus(materiaPrima.stock, materiaPrima.stock_minimo);
+    const status = getStockStatus(stockActual, stockMinimo);
 
     return (
         <div className={`relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-l-4 ${status.color.replace('bg-', 'border-')} shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group`}>
@@ -88,18 +90,18 @@ export default function MateriaPrimaCard({ materiaPrima }) {
                                 <h3 className="text-2xl sm:text-lg md:text-2xl lg:text-lg font-bold text-gray-800 capitalize sm:truncate">
                                     {materiaPrima.nombre}
                                 </h3>
-                                {materiaPrima.stock <= materiaPrima.stock_minimo && (
+                                {/* {stockActual <= stockMinimo && (
                                     <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1 flex-shrink-0">
                                         <AlertTriangle className="w-3 h-3" />
                                         Bajo
                                     </span>
-                                )}
+                                )} */}
                             </div>
                             
                             {/* Stock mínimo */}
-                            {materiaPrima.stock_minimo && (
-                                <p className="text-xs md:text-sm lg:text-xs text-gray-500 hidden sm:block">
-                                    Mínimo: <span className="font-semibold">{materiaPrima.stock_minimo} {materiaPrima.unidad_medida || "kg"}</span>
+                            {stockMinimo && (
+                                <p className="text-xs text-gray-500">
+                                    Mínimo: <span className="font-semibold">{stockMinimo} {materiaPrima.unidad_medida || "kg"}</span>
                                 </p>
                             )}
                         </div>
@@ -110,7 +112,7 @@ export default function MateriaPrimaCard({ materiaPrima }) {
                         <div className="flex items-baseline gap-1 sm:flex-col sm:items-end">
                             <div className="flex items-baseline gap-1">
                                 <span className="text-2xl sm:text-3xl font-bold text-gray-800">
-                                    {parseFloat(materiaPrima.stock).toFixed(2)}
+                                    {materiaPrima.nombre === 'HUEVOS' ? parseInt(stockActual) : parseFloat(stockActual).toFixed(2)}
                                 </span>
                                 <span className="text-sm text-gray-500 font-medium">
                                     {materiaPrima.unidad_base }
@@ -127,12 +129,6 @@ export default function MateriaPrimaCard({ materiaPrima }) {
                         </div>
                     </div>
 
-                    {/* Stock mínimo - solo visible en móvil */}
-                    {materiaPrima.stock_minimo && (
-                        <p className="text-xs text-gray-500 sm:hidden">
-                            Mínimo: <span className="font-semibold">{materiaPrima.stock_minimo} {materiaPrima.unidad_medida || "kg"}</span>
-                        </p>
-                    )}
 
                     {/* <div className="flex flex-row sm:flex-col md:flex-row lg:flex-col gap-2 pt-3">
                         <button
