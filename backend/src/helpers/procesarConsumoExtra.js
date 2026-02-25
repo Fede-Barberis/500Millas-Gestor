@@ -7,6 +7,8 @@ export default async function procesarConsumoExtra(
     operacion,
     transaction
 ) {
+    const cantidadNumerica = Number(cantidad || 0);
+
     const extras = await ConsumoExtra.findAll({
         where: { id_producto },
         transaction
@@ -16,7 +18,9 @@ export default async function procesarConsumoExtra(
 
         // MP directa (dulce, glasee, etc)
         if (ext.id_materiaPrima) {
-            const total = (cantidad * ext.cantidad_por_lote) / ext.lote_equivale;
+            const cantidadPorLote = Number(ext.cantidad_por_lote || 0);
+            const loteEquivale = Number(ext.lote_equivale || 1);
+            const total = (cantidadNumerica * cantidadPorLote) / loteEquivale;
 
             await actualizarStockMateriaPrima(
                 ext.id_materiaPrima,
@@ -28,7 +32,8 @@ export default async function procesarConsumoExtra(
 
         // Receta completa
         if (ext.id_receta) {
-            const lotes = Math.ceil(cantidad / ext.lote_equivale);
+            const loteEquivale = Number(ext.lote_equivale || 1);
+            const lotes = cantidadNumerica / loteEquivale;
 
             const ingredientes = await RecetaMateriaPrima.findAll({
                 where: { id_receta: ext.id_receta },
