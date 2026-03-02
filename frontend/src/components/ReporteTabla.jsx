@@ -8,33 +8,35 @@ import { descargarReporte } from "../api/reporteApi";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Calendar, CheckCircle, AlertCircle, FileText } from 'lucide-react';
 
-function abrirPdf(id) {
+async function abrirPdf(id) {
     if (!id) {
         alert("ID de reporte inválido");
         return;
     }
 
-    descargarReporte(id)
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
+    try {
+        const blob = await descargarReporte(id);
+        const url = window.URL.createObjectURL(blob);
 
-            // abrir en nueva pestaña
-            window.open(url, "_blank");
+        // abrir en nueva pestaña
+        window.open(url, "_blank");
 
-            // descargar
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `reporte_${id}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+        // descargar
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `reporte_${id}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
 
+        // liberar URL luego de dar tiempo a la pestaña nueva para cargar
+        setTimeout(() => {
             window.URL.revokeObjectURL(url);
-        })
-        .catch(err => {
-            console.error("Error al abrir PDF:", err);
-            alert("Error al abrir el PDF");
-        });
+        }, 60000);
+    } catch (err) {
+        console.error("Error al abrir PDF:", err);
+        alert(err?.message || "Error al abrir el PDF");
+    }
 }
 
 const columnHelper = createColumnHelper();

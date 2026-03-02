@@ -1,7 +1,11 @@
 import { cerrarMesProduccion } from "../helpers/cerrarMesProduccion.js";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import ReporteMensual from "../models/reporteMensual.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function obtenerMesAnterior(fecha = new Date()) {
     const anterior = new Date(fecha.getFullYear(), fecha.getMonth() - 1, 1);
@@ -122,15 +126,16 @@ const reportesController = {
                 });
             }
     
-            // USAR DIRECTAMENTE LA RUTA GUARDADA
-            const rutaPdf = path.join(
-                process.cwd(),
-                "reportes",
-                reporte.archivo_pdf
-            );
+            const candidatos = [
+                path.join(process.cwd(), "reportes", reporte.archivo_pdf),
+                path.join(process.cwd(), "backend", "reportes", reporte.archivo_pdf),
+                path.join(__dirname, "..", "..", "reportes", reporte.archivo_pdf)
+            ];
+
+            const rutaPdf = candidatos.find((ruta) => fs.existsSync(ruta));
             
-    
-            if (!fs.existsSync(rutaPdf)) {
+
+            if (!rutaPdf) {
                 return res.status(404).json({
                     ok: false,
                     error: "Archivo PDF no encontrado"
