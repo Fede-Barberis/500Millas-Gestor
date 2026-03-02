@@ -8,9 +8,11 @@ export function useVentaData() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)  
 
-    const fetchData = async () => {
+    const fetchData = async ({ showLoader = true } = {}) => {
         try {
-            setLoading(true)
+            if (showLoader) {
+                setLoading(true)
+            }
             const [ventaData, productoData] = await Promise.all([
                 getVentas(),
                 getProductos()
@@ -22,7 +24,9 @@ export function useVentaData() {
         } catch (error) {
             setError("Error al cargar ventas")
         } finally {
-            setLoading(false)
+            if (showLoader) {
+                setLoading(false)
+            }
         }
     };
 
@@ -49,7 +53,7 @@ export function useVentaData() {
             const resp = await editarVenta(venta.id_venta, venta); 
 
             if (resp.ok) {
-                await fetchData();
+                await fetchData({ showLoader: false });
                 return { ok: true };
             } else {
                 return { ok: false, error: resp.error };

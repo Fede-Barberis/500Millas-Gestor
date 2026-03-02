@@ -125,7 +125,6 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
                     toast.success("Venta actualizada", {
                         description: "Los cambios se guardaron correctamente",
                     });
-                    onCreated();
                     onClose();
                 } else {
                     throw new Error(resp.error || "Error al actualizar");
