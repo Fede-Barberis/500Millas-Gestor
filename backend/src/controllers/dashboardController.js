@@ -415,12 +415,6 @@ const dashboardController = {
         try{
             const pedidos = await Pedido.findAll({
                 attributes: ["id_pedido", "fecha_entrega", "persona"],
-                include: [
-                    {
-                        model: DetallePedido,
-                        include: [Producto],
-                    },
-                ], 
                 order: [["fecha_entrega", "ASC"]],
             });
 

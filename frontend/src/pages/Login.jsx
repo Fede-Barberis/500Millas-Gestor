@@ -30,9 +30,7 @@ export default function Login() {
             login(res.user, res.token);
             toast.success("Inicio de sesión exitoso!");
             
-            setTimeout(() => {
-                navigate('/dashboard');
-            }, 1000);
+            navigate('/dashboard');
         } catch (err) {
             toast.error("Credenciales inválidas");
         }

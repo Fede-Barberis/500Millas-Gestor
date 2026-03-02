@@ -40,19 +40,24 @@ export function useDashboardData() {
         setLoading(true);
         setError(null);
 
-        const [balanceData, alertasData] = await Promise.all([
-            getStats(),
-            getAlertas()
-        ]);
+        const balanceData = await getStats();
 
         setBalance(balanceData || {});
-        setAlertas(alertasData?.alertas || []);
 
         } catch (err) {
         console.error(err);
         setError("Error al cargar los datos principales del dashboard");
         } finally {
         setLoading(false);
+        }
+    }, []);
+
+    const fetchAlertas = useCallback(async () => {
+        try {
+        const alertasData = await getAlertas();
+        setAlertas(alertasData?.alertas || []);
+        } catch (err) {
+        console.error("Error al cargar alertas", err);
         }
     }, []);
 
@@ -79,11 +84,14 @@ export function useDashboardData() {
     useEffect(() => {
         fetchCoreData();
         fetchSecondaryData();
-    }, [fetchCoreData, fetchSecondaryData]);
+        fetchAlertas();
+    }, [fetchCoreData, fetchSecondaryData, fetchAlertas]);
 
     // Refresco de alertas (30s)
     useEffect(() => {
         const interval = setInterval(async () => {
+        if (document.hidden) return;
+
         try {
             const alertasData = await getAlertas();
             const nuevasAlertas = alertasData?.alertas || [];
@@ -96,7 +104,7 @@ export function useDashboardData() {
         } catch (e) {
             console.error("Error al refrescar alertas", e);
         }
-        }, 30000);
+        }, 60000);
 
         return () => clearInterval(interval);
     }, []);
@@ -158,6 +166,7 @@ export function useDashboardData() {
         refetch: () => {
         fetchCoreData();
         fetchSecondaryData();
+        fetchAlertas();
         }
     };
 }

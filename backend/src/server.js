@@ -52,10 +52,17 @@ const start = async () => {
         //     console.warn("⚠️ DB sincronizada con FORCE");
         // }
 
+        const shouldSyncModels =
+            process.env.DB_SYNC_ON_START === "true" ||
+            process.env.NODE_ENV !== "production";
 
-        // Sincronizar modelos. Usá alter:true en desarrollo para que actualice sin borrar datos.
-        await db.sync();
-        console.log("✅ Modelos sincronizados.");
+        if (shouldSyncModels) {
+            // En producción conviene manejar cambios de esquema con migraciones.
+            await db.sync();
+            console.log("✅ Modelos sincronizados.");
+        } else {
+            console.log("⏭️ db.sync omitido en producción.");
+        }
 
         app.listen(PORT, () => {
         console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
