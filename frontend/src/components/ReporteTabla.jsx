@@ -221,7 +221,7 @@ const ReporteTabla = ({ data, loading  }) => {
             <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 text-lg font-medium">No hay reportes generados</p>
             <p className="text-gray-400 text-sm mt-2">
-                Los reportes se generan automáticamente el último día de cada mes
+                Los reportes se generan al inicio de cada mes para el periodo anterior
             </p>
             </div>
         )}

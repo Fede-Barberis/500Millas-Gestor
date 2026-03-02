@@ -1,16 +1,18 @@
 
-import { 
-    FileText, 
-    Calendar, 
-    BarChart3, 
-    TrendingUp, 
-    CheckCircle, 
-    AlertCircle,
+import {
+    Calendar,
+    TrendingUp,
+    CheckCircle,
     Package,
     Activity
 } from "lucide-react";
 
 const EstadisticasReporte = ({ reportes }) => {
+    const meses = [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+
     const totalReportes = reportes.length;
     
     const reportesGenerados = reportes.filter(r => r.estado === 'GENERADO').length;
@@ -33,9 +35,22 @@ const EstadisticasReporte = ({ reportes }) => {
         ? Math.round(totalProducciones / reportesGenerados) 
         : 0;
 
-    // Último mes
-    const ultimoReporte = reportes.length > 0 
-        ? reportes.sort((a, b) => new Date(b.fecha_generacion) - new Date(a.fecha_generacion))[0]
+    // Ultimo periodo cerrado (mes/anio del reporte), no la fecha de generacion
+    const ultimoReporte = reportes.length > 0
+        ? reportes.reduce((ultimo, actual) => {
+            if (!ultimo) return actual;
+
+            const periodoUltimo = Number(ultimo.año) * 100 + Number(ultimo.mes);
+            const periodoActual = Number(actual.año) * 100 + Number(actual.mes);
+
+            if (periodoActual > periodoUltimo) return actual;
+            if (periodoActual < periodoUltimo) return ultimo;
+
+            // Si ambos son del mismo periodo, prioriza el de mayor fecha_generacion
+            return new Date(actual.fecha_generacion) > new Date(ultimo.fecha_generacion)
+                ? actual
+                : ultimo;
+        }, null)
         : null;
 
     // Tasa de éxito
@@ -119,7 +134,7 @@ const EstadisticasReporte = ({ reportes }) => {
             })}
         </div>
 
-        {/* Último reporte generado */}
+        {/* Ultimo periodo cerrado */}
         {ultimoReporte && (
             <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl shadow-md border-2 border-indigo-200 p-6">
             <div className="flex items-center justify-between">
@@ -129,12 +144,16 @@ const EstadisticasReporte = ({ reportes }) => {
                 </div>
                 <div>
                     <p className="text-sm font-medium text-gray-600">
-                        Último Reporte Generado
+                        Ultimo Periodo Cerrado
                     </p>
                     <p className="text-xl font-bold text-gray-900">
-                        {new Date(ultimoReporte.fecha_generacion).toLocaleDateString('es-ES', { 
-                            year: 'numeric', 
-                            month: 'long' 
+                        {meses[Number(ultimoReporte.mes) - 1]} {ultimoReporte.año}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                        Generado: {new Date(ultimoReporte.fecha_generacion).toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
                         })}
                     </p>
                 </div>
