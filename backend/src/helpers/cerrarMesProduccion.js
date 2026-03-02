@@ -15,6 +15,9 @@ import {
 
 import generarPdfReporte from "./generarPdfReporte.js";
 
+const UNIDADES_POR_DOCENA = 12;
+const UNIDADES_POR_BOLSA_GALLETA = 48;
+
 function normalizarNombre(nombre = "") {
     return String(nombre).toLowerCase();
 }
@@ -171,6 +174,67 @@ async function obtenerMetricasMes(mes, anio, transaction, strictProduccion = fal
     };
 }
 
+async function construirDatosReporteMensual(mes, anio, transaction) {
+    const metricasMesActual = await obtenerMetricasMes(mes, anio, transaction, true);
+
+    let acumuladoAlfajoresUnidades = 0;
+    let acumuladoGalletasConSemillaUnidades = 0;
+    let acumuladoGalletasSinSemillaUnidades = 0;
+    let acumuladoTapas = 0;
+
+    const resumenMensualAcumulado = [];
+    for (let mesIdx = 1; mesIdx <= mes; mesIdx += 1) {
+        const m = await obtenerMetricasMes(mesIdx, anio, transaction, false);
+
+        acumuladoAlfajoresUnidades += m.docenasAlfajoresMes * UNIDADES_POR_DOCENA;
+        acumuladoGalletasConSemillaUnidades += m.docenasGalletasConSemillaMes * UNIDADES_POR_BOLSA_GALLETA;
+        acumuladoGalletasSinSemillaUnidades += m.docenasGalletasSinSemillaMes * UNIDADES_POR_BOLSA_GALLETA;
+        acumuladoTapas += m.totalTapasMes;
+
+        resumenMensualAcumulado.push({
+            mes: mesIdx,
+            docenasAlfajoresMes: m.docenasAlfajoresMes,
+            alfajoresUnidadesMes: m.docenasAlfajoresMes * UNIDADES_POR_DOCENA,
+            docenasGalletasConSemillaMes: m.docenasGalletasConSemillaMes,
+            galletasConSemillaUnidadesMes: m.docenasGalletasConSemillaMes * UNIDADES_POR_BOLSA_GALLETA,
+            docenasGalletasSinSemillaMes: m.docenasGalletasSinSemillaMes,
+            galletasSinSemillaUnidadesMes: m.docenasGalletasSinSemillaMes * UNIDADES_POR_BOLSA_GALLETA,
+            tapasMes: m.totalTapasMes,
+            alfajoresUnidadesAcumulado: acumuladoAlfajoresUnidades,
+            galletasConSemillaUnidadesAcumulado: acumuladoGalletasConSemillaUnidades,
+            galletasSinSemillaUnidadesAcumulado: acumuladoGalletasSinSemillaUnidades,
+            tapasAcumulado: acumuladoTapas
+        });
+    }
+
+    return { metricasMesActual, resumenMensualAcumulado };
+}
+
+export async function regenerarPdfReporteMensual(mes, anio) {
+    const t = await db.transaction();
+
+    try {
+        const { metricasMesActual, resumenMensualAcumulado } =
+            await construirDatosReporteMensual(mes, anio, t);
+
+        const archivoPdf = await generarPdfReporte({
+            mes,
+            anio,
+            resumenPorProducto: metricasMesActual.resumenPorProducto,
+            totalIngresos: metricasMesActual.totalIngresos,
+            totalEgresosInsumos: metricasMesActual.totalEgresosInsumos,
+            diferenciaMes: metricasMesActual.diferenciaMes,
+            resumenMensualAcumulado
+        });
+
+        await t.commit();
+        return archivoPdf;
+    } catch (error) {
+        await t.rollback();
+        throw error;
+    }
+}
+
 export async function cerrarMesProduccion(mes, anio) {
     const t = await db.transaction();
 
@@ -188,37 +252,8 @@ export async function cerrarMesProduccion(mes, anio) {
             throw new Error(`No se puede cerrar el mes ${mes}/${anio} antes de su finalización`);
         }
 
-        const metricasMesActual = await obtenerMetricasMes(mes, anio, t, true);
-
-        let acumuladoAlfajoresUnidades = 0;
-        let acumuladoGalletasConSemillaUnidades = 0;
-        let acumuladoGalletasSinSemillaUnidades = 0;
-        let acumuladoTapas = 0;
-
-        const resumenMensualAcumulado = [];
-        for (let mesIdx = 1; mesIdx <= mes; mesIdx += 1) {
-            const m = await obtenerMetricasMes(mesIdx, anio, t, false);
-
-            acumuladoAlfajoresUnidades += m.docenasAlfajoresMes * 12;
-            acumuladoGalletasConSemillaUnidades += m.docenasGalletasConSemillaMes * 12;
-            acumuladoGalletasSinSemillaUnidades += m.docenasGalletasSinSemillaMes * 12;
-            acumuladoTapas += m.totalTapasMes;
-
-            resumenMensualAcumulado.push({
-                mes: mesIdx,
-                docenasAlfajoresMes: m.docenasAlfajoresMes,
-                alfajoresUnidadesMes: m.docenasAlfajoresMes * 12,
-                docenasGalletasConSemillaMes: m.docenasGalletasConSemillaMes,
-                galletasConSemillaUnidadesMes: m.docenasGalletasConSemillaMes * 12,
-                docenasGalletasSinSemillaMes: m.docenasGalletasSinSemillaMes,
-                galletasSinSemillaUnidadesMes: m.docenasGalletasSinSemillaMes * 12,
-                tapasMes: m.totalTapasMes,
-                alfajoresUnidadesAcumulado: acumuladoAlfajoresUnidades,
-                galletasConSemillaUnidadesAcumulado: acumuladoGalletasConSemillaUnidades,
-                galletasSinSemillaUnidadesAcumulado: acumuladoGalletasSinSemillaUnidades,
-                tapasAcumulado: acumuladoTapas
-            });
-        }
+        const { metricasMesActual, resumenMensualAcumulado } =
+            await construirDatosReporteMensual(mes, anio, t);
 
         const archivoPdf = await generarPdfReporte({
             mes,

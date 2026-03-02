@@ -1,4 +1,4 @@
-import { cerrarMesProduccion } from "../helpers/cerrarMesProduccion.js";
+import { cerrarMesProduccion, regenerarPdfReporteMensual } from "../helpers/cerrarMesProduccion.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -132,8 +132,32 @@ const reportesController = {
                 path.join(__dirname, "..", "..", "reportes", reporte.archivo_pdf)
             ];
 
-            const rutaPdf = candidatos.find((ruta) => fs.existsSync(ruta));
+            let rutaPdf = candidatos.find((ruta) => fs.existsSync(ruta));
             
+
+            if (!rutaPdf) {
+                try {
+                    const nombreRegenerado = await regenerarPdfReporteMensual(
+                        Number(reporte.mes),
+                        Number(reporte.año)
+                    );
+
+                    if (nombreRegenerado && reporte.archivo_pdf !== nombreRegenerado) {
+                        reporte.archivo_pdf = nombreRegenerado;
+                        await reporte.save();
+                    }
+
+                    const candidatosRegenerados = [
+                        path.join(process.cwd(), "reportes", reporte.archivo_pdf),
+                        path.join(process.cwd(), "backend", "reportes", reporte.archivo_pdf),
+                        path.join(__dirname, "..", "..", "reportes", reporte.archivo_pdf)
+                    ];
+
+                    rutaPdf = candidatosRegenerados.find((ruta) => fs.existsSync(ruta));
+                } catch (regenError) {
+                    console.error("No se pudo regenerar el PDF:", regenError);
+                }
+            }
 
             if (!rutaPdf) {
                 return res.status(404).json({

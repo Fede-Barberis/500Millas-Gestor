@@ -135,17 +135,17 @@ function generarPdfReporte({
 
         y = ensureSpace(doc, y, 180);
         doc.fillColor("#111827").font("Helvetica-Bold").fontSize(11)
-            .text("2) Acumulado mensual en unidades (docenas x 12)", 40, y);
+            .text("2) Acumulado mensual en unidades (Alf x12 / Galletas x48)", 40, y);
         y += 16;
 
         const colsAcumulado = [
             { key: "mes", label: "Mes", width: 45, align: "left" },
             { key: "docenasAlfajoresMes", label: "Alf Doc", width: 58, align: "right" },
             { key: "alfajoresUnidadesMes", label: "Alf x12", width: 58, align: "right" },
-            { key: "docenasGalletasConSemillaMes", label: "GCS Doc", width: 58, align: "right" },
-            { key: "galletasConSemillaUnidadesMes", label: "GCS x12", width: 58, align: "right" },
-            { key: "docenasGalletasSinSemillaMes", label: "GSS Doc", width: 58, align: "right" },
-            { key: "galletasSinSemillaUnidadesMes", label: "GSS x12", width: 58, align: "right" },
+            { key: "docenasGalletasConSemillaMes", label: "GCS Bol", width: 58, align: "right" },
+            { key: "galletasConSemillaUnidadesMes", label: "GCS x48", width: 58, align: "right" },
+            { key: "docenasGalletasSinSemillaMes", label: "GSS Bol", width: 58, align: "right" },
+            { key: "galletasSinSemillaUnidadesMes", label: "GSS x48", width: 58, align: "right" },
             { key: "tapasMes", label: "Tapas Mes", width: 70, align: "right" }
         ];
 
@@ -196,8 +196,8 @@ function generarPdfReporte({
         doc.rect(40, y, acumuladoW, 66).fill("#DBEAFE");
         doc.fillColor("#1E3A8A").font("Helvetica-Bold").fontSize(9)
             .text(`Acumulado al ultimo mes - Alfajores: ${qty(totalDocenasAlf)} doc / ${qty(totalUnidadesAlf)} un`, 50, y + 10)
-            .text(`Acumulado al ultimo mes - Galletas C/S: ${qty(totalDocenasGcs)} doc / ${qty(totalUnidadesGcs)} un`, 50, y + 26)
-            .text(`Acumulado al ultimo mes - Galletas S/S: ${qty(totalDocenasGss)} doc / ${qty(totalUnidadesGss)} un`, 50, y + 42)
+            .text(`Acumulado al ultimo mes - Galletas C/S: ${qty(totalDocenasGcs)} bol / ${qty(totalUnidadesGcs)} un`, 50, y + 26)
+            .text(`Acumulado al ultimo mes - Galletas S/S: ${qty(totalDocenasGss)} bol / ${qty(totalUnidadesGss)} un`, 50, y + 42)
             .text(`Tapas acumuladas: ${qty(ultimo.tapasAcumulado || 0)}`, 390, y + 42);
 
         doc.end();
