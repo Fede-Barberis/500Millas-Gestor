@@ -19,6 +19,11 @@ const Venta = db.define("Venta", {
         type: DataTypes.INTEGER,
         allowNull: true
     },
+    tipo: {
+        type: DataTypes.ENUM("venta", "donacion", "cajas_negras", "consumo_propio"),
+        allowNull: false,
+        defaultValue: "venta"
+    },
     isPagado: {
         type: DataTypes.BOOLEAN,
         defaultValue: false

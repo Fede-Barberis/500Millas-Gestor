@@ -35,6 +35,7 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
                     precio: d.precio,
                     total: d.precio * d.cantidad,
                     persona: v.persona,
+                    tipo: v.tipo || "venta",
                     id_pedido: v.id_pedido,
                     isPagado: v.isPagado
                 });
@@ -49,6 +50,7 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
     // -------------------------
     // Filtros
     const [vFiltro, setvFiltro] = useState("all");
+    const [tipoFiltro, setTipoFiltro] = useState("all");
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
     const [isPagado, setIsPagado] = useState("all");
@@ -77,6 +79,10 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
             if (fechaHasta && item.fecha > fechaHasta)
                 return false;
 
+            // Filtro por tipo de movimiento
+            if (tipoFiltro !== "all" && item.tipo !== tipoFiltro)
+                return false;
+
             // --- Filtro por estado de pago (robusto ante boolean/num/string) ---
             if (isPagado !== "all") {
             const seleccionadoEsPagado = isPagado === "1" || isPagado === "true";
@@ -89,7 +95,7 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
 
             return true;
         });
-    }, [rows, vFiltro, fechaDesde, fechaHasta, isPagado, searchTerm]);
+    }, [rows, vFiltro, tipoFiltro, fechaDesde, fechaHasta, isPagado, searchTerm]);
 
     // ----------------------------------------
     // COLUMNAS CORREGIDAS
@@ -167,6 +173,30 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
                     {info.getValue()}
                 </span>
             )
+        }),
+        columnHelper.accessor("tipo", {
+            header: "Tipo",
+            cell: info => {
+                const tipo = info.getValue();
+                const etiquetas = {
+                    venta: 'Venta',
+                    donacion: 'Donación',
+                    cajas_negras: 'Cajas Negras',
+                    consumo_propio: 'Consumo Propio'
+                };
+                const colores = {
+                    venta: 'text-green-800 bg-green-100',
+                    donacion: 'text-blue-800 bg-blue-100',
+                    cajas_negras: 'text-purple-800 bg-purple-100',
+                    consumo_propio: 'text-yellow-800 bg-yellow-100'
+                };
+
+                return (
+                    <span className={`font-mono text-sm ${colores[tipo] || 'text-gray-800 bg-gray-100'} px-2 py-1 rounded`}>
+                        {etiquetas[tipo] || tipo}
+                    </span>
+                );
+            }
         }),
         columnHelper.accessor("isPagado", {
             header: "Estado",
@@ -255,7 +285,7 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
                     <span className="text-sm font-semibold text-gray-700">Filtros</span>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
                     {/* Filtro por Producto */}
                     <div>
                         <label className="block mb-1.5 text-sm font-medium text-gray-700">
@@ -272,6 +302,24 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
                                     {p.nombre}
                                 </option>
                             ))}
+                        </select>
+                    </div>
+
+                    {/* Filtro por Tipo */}
+                    <div>
+                        <label className="block mb-1.5 text-sm font-medium text-gray-700">
+                            Tipo de Movimiento
+                        </label>
+                        <select
+                            className="font-heading border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
+                            value={tipoFiltro}
+                            onChange={e => setTipoFiltro(e.target.value)}
+                        >
+                            <option value="all">Todos</option>
+                            <option value="venta">Venta</option>
+                            <option value="donacion">Donación</option>
+                            <option value="cajas_negras">Cajas Negras</option>
+                            <option value="consumo_propio">Consumo Propio</option>
                         </select>
                     </div>
 
@@ -319,10 +367,11 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
                 </div>
 
                 {/* Botón limpiar filtros */}
-                {(vFiltro !== "all" || fechaDesde || fechaHasta || isPagado !=="all" || searchTerm) && (
+                {(vFiltro !== "all" || tipoFiltro !== "all" || fechaDesde || fechaHasta || isPagado !=="all" || searchTerm) && (
                     <button
                         onClick={() => {
                             setvFiltro("all");
+                            setTipoFiltro("all");
                             setFechaDesde("");
                             setFechaHasta("");
                             setIsPagado("all");

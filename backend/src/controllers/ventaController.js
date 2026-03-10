@@ -35,7 +35,10 @@ const ventaController = {
         const transaction = await db.transaction();
 
         try {
-            const { fecha, persona, id_pedido, isPagado, detalles } = req.body;
+            const { fecha, persona, id_pedido, tipo, isPagado, detalles } = req.body;
+
+            const tiposValidos = ["venta", "donacion", "cajas_negras", "consumo_propio"];
+            const tipoNormalizado = tiposValidos.includes(tipo) ? tipo : "venta";
 
             if (!fecha || !persona || !Array.isArray(detalles) || detalles.length === 0) {
                 await transaction.rollback();
@@ -46,7 +49,7 @@ const ventaController = {
             }
 
             // Normalizar pago
-            const pago = ["true", "1", 1, true].includes(isPagado);
+            let pago = ["true", "1", 1, true].includes(isPagado);
 
             // Normalizar pedido
             const pedidoNormalizado =
@@ -54,11 +57,15 @@ const ventaController = {
                 ? null
                 : Number(id_pedido);
 
-            // normalizar pedidos
+            // Determinar si el movimiento es gratuito (solo donación y consumo propio)
+            const esGratis = ["donacion", "consumo_propio"].includes(tipoNormalizado);
+            if (esGratis) pago = false;
+
+            // normalizar detalles
             const productosNormalizados = detalles.map(p => ({
                 id_producto: p.id_producto,
                 cantidad: Number(p.cantidad),
-                precio: Number(p.precio ?? p.producto?.precio)
+                precio: esGratis ? 0 : Number(p.precio ?? p.producto?.precio)
             }));
 
             // Validación final
@@ -80,7 +87,7 @@ const ventaController = {
 
             // Crear venta
             const venta = await Venta.create(
-                { fecha, persona, id_pedido: pedidoNormalizado, isPagado: pago },
+                { fecha, persona, id_pedido: pedidoNormalizado, tipo: tipoNormalizado, isPagado: pago },
                 { transaction }
             );
 
@@ -186,14 +193,19 @@ const ventaController = {
 
         try {
             const { id_venta } = req.params;
-            const { fecha, persona, id_pedido, isPagado, detalles } = req.body;
+            const { fecha, persona, id_pedido, tipo, isPagado, detalles } = req.body;
+
+            const tiposValidos = ["venta", "donacion", "cajas_negras", "consumo_propio"];
+            const tipoNormalizado = tiposValidos.includes(tipo) ? tipo : "venta";
 
             if (!Array.isArray(detalles)) {
                 throw new Error("El campo 'detalles' debe ser un array");
             }
 
             // Normalizar pago
-            const pago = ["true", "1", 1, true].includes(isPagado);
+            let pago = ["true", "1", 1, true].includes(isPagado);
+            const esGratis = ["donacion", "consumo_propio"].includes(tipoNormalizado);
+            if (esGratis) pago = false;
 
             // Obtener venta
             const venta = await Venta.findByPk(id_venta, { transaction });
@@ -221,13 +233,15 @@ const ventaController = {
             for (const nuevo of detalles) {
                 const viejo = mapViejos.get(nuevo.id_producto);
 
+                const detallePrecio = esGratis ? 0 : Number(nuevo.precio);
+
                 if (!viejo) {
                     // 🔹 Producto nuevo → crear detalle y restar stock
                     await VentaDetalle.create({
                         id_venta,
                         id_producto: nuevo.id_producto,
                         cantidad: nuevo.cantidad,
-                        precio: nuevo.precio
+                        precio: detallePrecio
                     }, { transaction });
 
                     await actualizarStockProducto(
@@ -252,7 +266,7 @@ const ventaController = {
                     // Actualizar el detalle
                     await viejo.update({
                         cantidad: nuevo.cantidad,
-                        precio: nuevo.precio
+                        precio: detallePrecio
                     }, { transaction });
 
                     // Marcar como procesado
@@ -271,7 +285,7 @@ const ventaController = {
 
             // Actualizar cabecera
             await venta.update(
-                { fecha, persona, id_pedido, isPagado: pago },
+                { fecha, persona, id_pedido, tipo: tipoNormalizado, isPagado: pago },
                 { transaction }
             );
 

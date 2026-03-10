@@ -1,4 +1,4 @@
-import { Package, Calendar, DollarSign, User, Hash, CheckCircle, X, Plus, Trash2 } from "lucide-react";
+import { Package, Calendar, DollarSign, User, Handshake, CheckCircle, X, Plus, Trash2 } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ventaSchema } from "../schemas/ventaSchemas.js"; 
@@ -34,6 +34,7 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
             fecha: "",
             persona: "",
             id_pedido: null,
+            tipo: "venta",
             isPagado: false,
             detalles: []
         },
@@ -52,6 +53,7 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
                 fecha: initialData.fecha,
                 persona: initialData.persona,
                 id_pedido: initialData.id_pedido || null,
+                tipo: initialData.tipo || "venta",
                 isPagado: initialData.isPagado ?? false,
                 detalles: initialData.VentaDetalles?.map(d => ({
                     id_producto: d.id_producto,
@@ -67,6 +69,7 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
                 fecha: "",
                 persona: "",
                 id_pedido: null,
+                tipo: "venta",
                 isPagado: false,
                 detalles: []
             });
@@ -76,10 +79,12 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
 
     // Agregar producto
     const agregarProducto = () => {
+        const precioInicial = esTipoGratuito ? 0 : "";
+
         append({
             id_producto: "",
             cantidad: "",
-            precio: ""
+            precio: precioInicial
         });
     };
 
@@ -95,19 +100,43 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
         }, 0);
     };
 
+    const tipoSeleccionado = watch("tipo");
+    const esTipoGratuito = ["donacion", "consumo_propio"].includes(tipoSeleccionado);
+
+    // Ajustes automáticos para tipos gratis
+    useEffect(() => {
+        if (esTipoGratuito) {
+            setIsPagado(false);
+            setValue("isPagado", false);
+            detalles.forEach((detalle, index) => {
+                if (Number(detalle.precio) !== 0) {
+                    setValue(`detalles.${index}.precio`, 0);
+                }
+            });
+        }
+    }, [esTipoGratuito, detalles, setValue]);
+
     // Actualizar precio cuando cambia el producto
     const handleProductoChange = (index, id_producto) => {
         const productoSeleccionado = productos.find(p => p.id_producto === parseInt(id_producto));
-        if (productoSeleccionado && productoSeleccionado.precio_venta) {
+        if (productoSeleccionado && productoSeleccionado.precio_venta && tipoSeleccionado === "venta") {
             setValue(`detalles.${index}.precio`, productoSeleccionado.precio_venta);
         }
     };
 
     const onSubmit = async (data) => {
+        const esGratis = ["donacion", "consumo_propio"].includes(data.tipo);
+        const detallesNormalizados = (data.detalles || []).map((d) => ({
+            ...d,
+            precio: esGratis ? 0 : Number(d.precio),
+            cantidad: Number(d.cantidad),
+        }));
+
         // Agregar isPagado al data
         const ventaData = {
             ...data,
-            isPagado: isPagado,
+            detalles: detallesNormalizados,
+            isPagado: esGratis ? false : isPagado,
             total: calcularTotal()
         };
 
@@ -240,6 +269,29 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
                                 )}
                             </div>
                         </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                    <Handshake className="w-4 h-4 text-green-600" />
+                                    Tipo de Movimiento
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    {...register("tipo")}
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                >
+                                    <option value="venta">Venta</option>
+                                    <option value="donacion">Donación</option>
+                                    <option value="cajas_negras">Cajas Negras</option>
+                                    <option value="consumo_propio">Consumo Propio</option>
+                                </select>
+                                {errors.tipo && (
+                                    <p className="text-red-500 text-sm flex items-center gap-1">
+                                        <span className="font-bold">•</span> {errors.tipo.message}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
 
                         {/* Sección de Productos */}
                         <div className="space-y-4">
@@ -342,8 +394,9 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
                                                     type="text"
                                                     inputMode="decimal"
                                                     {...register(`detalles.${index}.precio`)}
-                                                    placeholder="0.00"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                                                    placeholder="0"
+                                                    disabled={["donacion", "consumo_propio"].includes(tipoSeleccionado)}
+                                                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none text-sm ${["donacion", "consumo_propio"].includes(tipoSeleccionado) ? "bg-gray-100 cursor-not-allowed" : "focus:ring-2 focus:ring-green-500"}`}
                                                 />
                                                 {errors.detalles?.[index]?.precio && (
                                                     <p className="text-red-500 text-xs">{errors.detalles[index].precio.message}</p>
@@ -352,7 +405,8 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
                                         </div>
 
                                         {/* Subtotal */}
-                                        {detalles[index]?.cantidad && detalles[index]?.precio && (
+                                        {(detalles[index]?.cantidad !== undefined && detalles[index]?.cantidad !== null && detalles[index]?.cantidad !== "" &&
+                                            detalles[index]?.precio !== undefined && detalles[index]?.precio !== null && detalles[index]?.precio !== "") && (
                                             <div className="mt-3 pt-3 border-t border-gray-200 text-right">
                                                 <span className="text-sm text-gray-600">Subtotal: </span>
                                                 <span className="text-lg font-bold text-green-600">
@@ -395,10 +449,13 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
                                     <button
                                         type="button"
                                         onClick={() => setIsPagado(true)}
+                                        disabled={esTipoGratuito}
                                         className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all font-semibold flex items-center justify-center gap-2 ${
-                                            isPagado
-                                                ? 'bg-green-50 border-green-500 text-green-700'
-                                                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                                            esTipoGratuito
+                                                ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed'
+                                                : isPagado
+                                                    ? 'bg-green-50 border-green-500 text-green-700'
+                                                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                                         }`}
                                     >
                                         <CheckCircle className="w-5 h-5" />
@@ -408,10 +465,13 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
                                     <button
                                         type="button"
                                         onClick={() => setIsPagado(false)}
+                                        disabled={esTipoGratuito}
                                         className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all font-semibold flex items-center justify-center gap-2 ${
-                                            !isPagado
-                                                ? 'bg-amber-50 border-amber-500 text-amber-700'
-                                                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                                            esTipoGratuito
+                                                ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed'
+                                                : !isPagado
+                                                    ? 'bg-amber-50 border-amber-500 text-amber-700'
+                                                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                                         }`}
                                     >
                                         <Calendar className="w-5 h-5" />
