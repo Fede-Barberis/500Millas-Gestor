@@ -106,8 +106,8 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
     // Ajustes automáticos para tipos gratis
     useEffect(() => {
         if (esTipoGratuito) {
-            setIsPagado(false);
-            setValue("isPagado", false);
+            setIsPagado(true);
+            setValue("isPagado", true);
             detalles.forEach((detalle, index) => {
                 if (Number(detalle.precio) !== 0) {
                     setValue(`detalles.${index}.precio`, 0);
@@ -136,7 +136,7 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
         const ventaData = {
             ...data,
             detalles: detallesNormalizados,
-            isPagado: esGratis ? false : isPagado,
+            isPagado: esGratis ? true : isPagado,
             total: calcularTotal()
         };
 

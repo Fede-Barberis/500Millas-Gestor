@@ -59,7 +59,7 @@ const ventaController = {
 
             // Determinar si el movimiento es gratuito (solo donación y consumo propio)
             const esGratis = ["donacion", "consumo_propio"].includes(tipoNormalizado);
-            if (esGratis) pago = false;
+            if (esGratis) pago = true;
 
             // normalizar detalles
             const productosNormalizados = detalles.map(p => ({
@@ -205,7 +205,7 @@ const ventaController = {
             // Normalizar pago
             let pago = ["true", "1", 1, true].includes(isPagado);
             const esGratis = ["donacion", "consumo_propio"].includes(tipoNormalizado);
-            if (esGratis) pago = false;
+            if (esGratis) pago = true;
 
             // Obtener venta
             const venta = await Venta.findByPk(id_venta, { transaction });
