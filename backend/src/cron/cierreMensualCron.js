@@ -9,13 +9,21 @@ function obtenerMesAnterior(fecha = new Date()) {
     };
 }
 
+function esDiaFinalDelMes(fecha = new Date()) {
+    const diaActual = fecha.getDate();
+    const diaFinalDelMes = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate();
+    return diaActual === diaFinalDelMes;
+}
+
 async function intentarCierreMensualAutomatico() {
     const ahora = new Date();
 
-    // Se intenta el cierre durante el dia 1 de cada mes.
-    if (ahora.getDate() !== 1) return;
+    // Se intenta el cierre durante el último día del mes
+    if (!esDiaFinalDelMes(ahora)) return;
 
-    const { mes, anio } = obtenerMesAnterior(ahora);
+    // Obtener el mes actual (que es el que se va a cerrar)
+    const mes = ahora.getMonth() + 1;
+    const anio = ahora.getFullYear();
 
     try {
         console.log(`[CRON] Intentando cierre automatico de ${mes}/${anio}`);
@@ -32,8 +40,8 @@ async function intentarCierreMensualAutomatico() {
 }
 
 export function iniciarCierreMensualCron() {
-    // Fallback interno: corre diario 00:05 para cerrar el mes anterior.
-    cron.schedule("5 0 * * *", async () => {
+    // Se ejecuta a las 12:00 PM UTC todos los días para cerrar el mes si es el último día
+    cron.schedule("0 12 * * *", async () => {
         await intentarCierreMensualAutomatico();
     });
 

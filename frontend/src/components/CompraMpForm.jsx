@@ -4,12 +4,13 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { compraMpSchema } from "../schemas/compraMpSchemas.js";
 import { useState, useEffect } from "react";
 import { crearCompraMp } from "../api/materiaPrimaApi.js";
-import { Package, Calendar, DollarSign, Hash, CheckCircle, X } from "lucide-react";
+import { Package, Calendar, DollarSign, Hash, CheckCircle, X, Loader } from "lucide-react";
 
 
 export default function CompraMpForm({ materiaPrimas, onCreated, onClose, initialData, isEditing = false, onSubmitCompra }) {
     const [isPagado, setIsPagado] = useState(initialData?.isPagado ?? false);
     const [mpSeleccionada, setMpSeleccionada] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     
     const { register, handleSubmit, reset, setValue, watch, formState: { errors }} = useForm ({
@@ -63,6 +64,7 @@ export default function CompraMpForm({ materiaPrimas, onCreated, onClose, initia
 
 
     const onSubmit = async (data) => {
+        setIsSubmitting(true);
         try {
             let resp;
             
@@ -103,6 +105,8 @@ export default function CompraMpForm({ materiaPrimas, onCreated, onClose, initia
             toast.error(isEditing ? "Error al actualizar" : "Error de conexión", {
                 description: error.message || "No se pudo comunicar con el servidor",
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -372,16 +376,35 @@ export default function CompraMpForm({ materiaPrimas, onCreated, onClose, initia
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-all font-semibold"
+                                disabled={isSubmitting}
+                                className={`px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl transition-all font-semibold ${
+                                    isSubmitting 
+                                        ? 'bg-gray-100 cursor-not-allowed opacity-50'
+                                        : 'hover:bg-gray-100'
+                                }`}
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="submit"
-                                className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-red-300 text-white rounded-xl hover:from-yellow-600 hover:to-red-400 transition-all shadow-md hover:shadow-lg font-semibold flex items-center justify-center gap-2"
+                                disabled={isSubmitting}
+                                className={`px-6 py-3 text-white rounded-xl transition-all shadow-md font-semibold flex items-center justify-center gap-2 ${
+                                    isSubmitting
+                                        ? 'bg-gray-400 cursor-not-allowed opacity-70'
+                                        : 'bg-gradient-to-r from-yellow-500 to-red-300 hover:from-yellow-600 hover:to-red-400 hover:shadow-lg'
+                                }`}
                             >
-                                <Package className="w-4 h-4" />
-                                {initialData ? "Guardar Cambios" : "Registrar Compra"}
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader className="w-4 h-4 animate-spin" />
+                                        Guardando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Package className="w-4 h-4" />
+                                        {initialData ? "Guardar Cambios" : "Registrar Compra"}
+                                    </>
+                                )}
                             </button>
                         </div>
 

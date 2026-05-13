@@ -50,14 +50,20 @@ export const descargarReporte = async (id) => {
     }
 };
 
-export const cerrarMes = async () => {
+export const cerrarMes = async (mes, año) => {
     try {
-        const res = await api.post("/reportes/cerrar-mes");
+        const payload = {};
+        if (mes !== undefined && año !== undefined) {
+            payload.mes = mes;
+            payload.año = año;
+        }
+        
+        const res = await api.post("/reportes/cerrar-mes", payload);
         return res.data;
     } catch (error) {
         return {
             ok: false,
-            error: error.response.data.error || error.response.data.message || 'Error al cargar reportes'
+            error: error.response?.data?.error || error.response?.data?.message || 'Error al cerrar el mes'
         };
     }
 };

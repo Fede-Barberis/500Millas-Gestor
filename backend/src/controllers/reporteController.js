@@ -19,18 +19,24 @@ const reportesController = {
 
     async cerrarMes(req, res) {
         try {
-            const { mes, año } = req.body;
+            let { mes, año } = req.body;
 
+            // Si no se proporcionan mes y año, usar el mes anterior (para retrocompatibilidad)
             if (!mes || !año) {
-                throw new Error("Mes y año son obligatorios");
+                const ahora = new Date();
+                const anterior = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1);
+                mes = anterior.getMonth() + 1;
+                año = anterior.getFullYear();
             }
 
-            const resultado = await cerrarMesProduccion(mes, año);
+            // Permitir cerrar meses pasados cuando se cierra manualmente
+            const resultado = await cerrarMesProduccion(mes, año, true);
 
             res.json({
                 ok: true,
-                message: "Mes cerrado correctamente",
-                reporte: resultado.cierre
+                message: `Mes ${mes}/${año} cerrado correctamente`,
+                reporte: resultado.cierre,
+                reporteId: resultado.reporteId
             });
 
         } catch (error) {

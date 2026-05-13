@@ -235,7 +235,7 @@ export async function regenerarPdfReporteMensual(mes, anio) {
     }
 }
 
-export async function cerrarMesProduccion(mes, anio) {
+export async function cerrarMesProduccion(mes, anio, permitirMesesPasados = false) {
     const t = await db.transaction();
 
     try {
@@ -246,10 +246,13 @@ export async function cerrarMesProduccion(mes, anio) {
 
         if (yaCerrado) throw new Error(`El mes ${mes}/${anio} ya fue cerrado`);
 
-        const ahora = new Date();
-        const ultimoDiaMes = new Date(anio, mes, 0, 23, 59, 59);
-        if (ahora < ultimoDiaMes) {
-            throw new Error(`No se puede cerrar el mes ${mes}/${anio} antes de su finalización`);
+        // Solo validar la fecha final si no se permite cerrar meses pasados
+        if (!permitirMesesPasados) {
+            const ahora = new Date();
+            const ultimoDiaMes = new Date(anio, mes, 0, 23, 59, 59);
+            if (ahora < ultimoDiaMes) {
+                throw new Error(`No se puede cerrar el mes ${mes}/${anio} antes de su finalización`);
+            }
         }
 
         const { metricasMesActual, resumenMensualAcumulado } =
