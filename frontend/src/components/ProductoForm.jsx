@@ -1,4 +1,4 @@
-import { Package, ChefHat, Image as ImageIcon, X, Upload, TriangleAlert } from "lucide-react";
+import { Package, ChefHat, Image as ImageIcon, X, Upload, TriangleAlert, Loader } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -9,6 +9,7 @@ import { crearProducto } from "../api/productoApi";
 
 
 export default function ProductoForm({ onCreated, onClose, initialData, isEditing = false, onSubmitProducto }) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
     // const [imagePreview, setImagePreview] = useState(initialData?.imagen || null);
 
     const {
