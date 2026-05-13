@@ -6,14 +6,16 @@ import {
 } from "@tanstack/react-table";
 import { descargarReporte } from "../api/reporteApi";
 import { createColumnHelper } from "@tanstack/react-table";
-import { Calendar, CheckCircle, AlertCircle, FileText } from 'lucide-react';
+import { Calendar, CheckCircle, AlertCircle, FileText, Loader } from 'lucide-react';
+import { useState } from "react";
 
-async function abrirPdf(id) {
+async function abrirPdf(id, setLoadingId) {
     if (!id) {
         alert("ID de reporte inválido");
         return;
     }
 
+    setLoadingId(id);
     try {
         const blob = await descargarReporte(id);
         const url = window.URL.createObjectURL(blob);
@@ -36,12 +38,15 @@ async function abrirPdf(id) {
     } catch (err) {
         console.error("Error al abrir PDF:", err);
         alert(err?.message || "Error al abrir el PDF");
+    } finally {
+        setLoadingId(null);
     }
 }
 
 const columnHelper = createColumnHelper();
 
 const ReporteTabla = ({ data, loading  }) => {
+    const [loadingId, setLoadingId] = useState(null);
     const meses = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
@@ -132,6 +137,7 @@ const ReporteTabla = ({ data, loading  }) => {
             header: "Archivo",
             cell: ({ row }) => {
                 const reporte = row.original;
+                const isLoading = loadingId === reporte.id_reporte;
 
                 if (reporte.estado !== "GENERADO") {
                     return (
@@ -143,12 +149,26 @@ const ReporteTabla = ({ data, loading  }) => {
 
                 return (
                     <button
-                        onClick={() => abrirPdf(reporte.id_reporte)}
-                        className="inline-flex items-center gap-2 px-4 py-2 
-                                bg-indigo-600 hover:bg-indigo-700 
-                                text-white rounded-lg text-sm font-medium"
+                        onClick={() => abrirPdf(reporte.id_reporte, setLoadingId)}
+                        disabled={isLoading}
+                        className={`inline-flex items-center gap-2 px-4 py-2 
+                                rounded-lg text-sm font-medium transition-all duration-200
+                                ${isLoading 
+                                    ? 'bg-indigo-400 text-white cursor-not-allowed opacity-70' 
+                                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                                }`}
                     >
-                        Ver PDF
+                        {isLoading ? (
+                            <>
+                                <Loader className="w-4 h-4 animate-spin" />
+                                Descargando...
+                            </>
+                        ) : (
+                            <>
+                                <FileText className="w-4 h-4" />
+                                Ver PDF
+                            </>
+                        )}
                     </button>
                 );
             }
