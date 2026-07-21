@@ -1,4 +1,4 @@
-import { Package, Calendar, User, X, Truck, Clock, Plus, Trash2, TriangleAlert } from "lucide-react";
+import { Package, Calendar, User, X, Truck, Clock, Plus, Trash2, TriangleAlert, Loader } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { pedidoSchema } from "../schemas/pedidoSchemas";
@@ -8,6 +8,7 @@ import { crearPedido } from "../api/pedidoApi";
 
 export default function PedidoForm({ productos = [], onClose, initialData, isEditing, onCreated, onSubmitPedido}) {
     const [estadoPedido, setEstadoPedido] = useState("pendiente");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const {
         register,
@@ -89,6 +90,7 @@ export default function PedidoForm({ productos = [], onClose, initialData, isEdi
             total: calcularTotal()
         };
 
+        setIsSubmitting(true);
         try {
             let resp;
             
@@ -128,6 +130,8 @@ export default function PedidoForm({ productos = [], onClose, initialData, isEdi
             toast.error(isEditing ? "Error al actualizar" : "Error de conexión", {
                 description: error.message || "No se pudo comunicar con el servidor",
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -421,17 +425,35 @@ export default function PedidoForm({ productos = [], onClose, initialData, isEdi
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-all font-semibold"
+                                disabled={isSubmitting}
+                                className={`px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl transition-all font-semibold ${
+                                    isSubmitting 
+                                        ? 'bg-gray-100 cursor-not-allowed opacity-50'
+                                        : 'hover:bg-gray-100'
+                                }`}
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="submit"
-                                onClick={handleSubmit(onSubmit)}
-                                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg font-semibold flex items-center justify-center gap-2"
+                                disabled={isSubmitting}
+                                className={`px-6 py-3 text-white rounded-xl transition-all shadow-md font-semibold flex items-center justify-center gap-2 ${
+                                    isSubmitting
+                                        ? 'bg-gray-400 cursor-not-allowed opacity-70'
+                                        : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 hover:shadow-lg'
+                                }`}
                             >
-                                <Truck className="w-4 h-4" />
-                                {isEditing ? "Guardar Cambios" : "Registrar Pedido"}
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader className="w-4 h-4 animate-spin" />
+                                        Guardando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Truck className="w-4 h-4" />
+                                        {isEditing ? "Guardar Cambios" : "Registrar Pedido"}
+                                    </>
+                                )}
                             </button>
                         </div>
 

@@ -1,12 +1,13 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { Package, Calendar, ClipboardList, Plus, X,  } from "lucide-react";
+import { Package, Calendar, ClipboardList, Plus, X, Loader } from "lucide-react";
 import { toast } from "sonner";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { productionSchema } from "../schemas/productionSchemas.js";
 import { crearProduccion } from "../api/produccionApi";
 
 export default function ProduccionForm({ recetas = [], productos = [], onCreated, onClose, initialData, isEditing = false, onSubmitProduccion }) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const {
         register,
         handleSubmit,
@@ -59,6 +60,7 @@ export default function ProduccionForm({ recetas = [], productos = [], onCreated
     };
 
     const onSubmit = async (data) => {
+        setIsSubmitting(true);
         try {
             let resp;
             
@@ -108,6 +110,8 @@ export default function ProduccionForm({ recetas = [], productos = [], onCreated
             toast.error(isEditing ? "Error al actualizar" : "Error de conexión", {
                 description: error.message || "No se pudo comunicar con el servidor",
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -315,16 +319,35 @@ export default function ProduccionForm({ recetas = [], productos = [], onCreated
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-all font-semibold"
+                                disabled={isSubmitting}
+                                className={`px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl transition-all font-semibold ${
+                                    isSubmitting 
+                                        ? 'bg-gray-100 cursor-not-allowed opacity-50'
+                                        : 'hover:bg-gray-100'
+                                }`}
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="submit"
-                                onClick={handleSubmit(onSubmit)}
-                                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg font-semibold flex items-center justify-center gap-2">
-                                <Package className="w-4 h-4" />
-                                {initialData ? "Guardar Cambios" : "Crear Producción"}
+                                disabled={isSubmitting}
+                                className={`px-6 py-3 text-white rounded-xl transition-all shadow-md font-semibold flex items-center justify-center gap-2 ${
+                                    isSubmitting
+                                        ? 'bg-gray-400 cursor-not-allowed opacity-70'
+                                        : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-lg'
+                                }`}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader className="w-4 h-4 animate-spin" />
+                                        Guardando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Package className="w-4 h-4" />
+                                        {initialData ? "Guardar Cambios" : "Crear Producción"}
+                                    </>
+                                )}
                             </button>
                         </div>
                     </form>

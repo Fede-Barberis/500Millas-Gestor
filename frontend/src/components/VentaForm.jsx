@@ -1,4 +1,4 @@
-import { Package, Calendar, DollarSign, User, Handshake, CheckCircle, X, Plus, Trash2 } from "lucide-react";
+import { Package, Calendar, DollarSign, User, Handshake, CheckCircle, X, Plus, Trash2, Loader } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ventaSchema } from "../schemas/ventaSchemas.js"; 
@@ -19,6 +19,7 @@ const normalizarNumero = (valor) => {
 
 export default function VentaForm({ productos = [], onClose, initialData, isEditing = false, onCreated, onSubmitVenta}) {
     const [isPagado, setIsPagado] = useState(initialData?.isPagado || false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const {
         register,
@@ -140,6 +141,7 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
             total: calcularTotal()
         };
 
+        setIsSubmitting(true);
         try {
             let resp;
             
@@ -188,6 +190,8 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
             toast.error(isEditing ? "Error al actualizar" : "Error de conexión", {
                 description: error.message || "No se pudo comunicar con el servidor",
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -486,16 +490,35 @@ export default function VentaForm({ productos = [], onClose, initialData, isEdit
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-all font-semibold"
+                                disabled={isSubmitting}
+                                className={`px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl transition-all font-semibold ${
+                                    isSubmitting 
+                                        ? 'bg-gray-100 cursor-not-allowed opacity-50'
+                                        : 'hover:bg-gray-100'
+                                }`}
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="submit"
-                                className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg font-semibold flex items-center justify-center gap-2"
+                                disabled={isSubmitting}
+                                className={`px-6 py-3 rounded-xl text-white transition-all shadow-md font-semibold flex items-center justify-center gap-2 ${
+                                    isSubmitting
+                                        ? 'bg-gray-400 cursor-not-allowed opacity-70'
+                                        : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 hover:shadow-lg'
+                                }`}
                             >
-                                <DollarSign className="w-4 h-4" />
-                                {isEditing ? "Guardar Cambios" : "Registrar Venta"}
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader className="w-4 h-4 animate-spin" />
+                                        Guardando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <DollarSign className="w-4 h-4" />
+                                        {isEditing ? "Guardar Cambios" : "Registrar Venta"}
+                                    </>
+                                )}
                             </button>
                         </div>
                     </form>
