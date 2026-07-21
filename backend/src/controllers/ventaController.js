@@ -188,6 +188,117 @@ const ventaController = {
     },
 
 
+    async cambiarEstadoPago(req, res) {
+        const transaction = await db.transaction();
+
+        try {
+            const { id_venta } = req.params;
+            const { isPagado } = req.body;
+
+            const pago = ["true", "1", 1, true].includes(isPagado);
+
+            const venta = await Venta.findByPk(id_venta, { transaction });
+
+            if (!venta) {
+                await transaction.rollback();
+                return res.status(404).json({
+                    ok: false,
+                    message: "Venta no encontrada"
+                });
+            }
+
+            await venta.update({ isPagado: pago }, { transaction });
+            await transaction.commit();
+
+            return res.json({
+                ok: true,
+                venta
+            });
+        } catch (error) {
+            console.log("Error en cambiarEstadoPago:", error);
+            await transaction.rollback();
+            return res.status(500).json({
+                ok: false,
+                error: error.message
+            });
+        }
+    },
+
+    async obtenerRemito(req, res) {
+        try {
+            const { id_venta } = req.params;
+
+            const venta = await Venta.findByPk(id_venta, {
+                include: [
+                    {
+                        model: VentaDetalle,
+                        include: [{ model: Producto }]
+                    }
+                ]
+            });
+
+            if (!venta) {
+                return res.status(404).json({
+                    ok: false,
+                    message: "Venta no encontrada"
+                });
+            }
+
+            const tipoRemito = ["donacion", "consumo_propio", "cajas_negras"].includes(venta.tipo)
+                ? "X (Interno)"
+                : "R (Oficial)";
+
+            const emisor = {
+                razonSocial: process.env.EMPRESA_RAZON_SOCIAL || "500 Millas S.R.L.",
+                cuit: process.env.EMPRESA_CUIT || "20-12345678-9",
+                domicilio: process.env.EMPRESA_DOMICILIO || "Av. Ejemplo 1234, Ciudad Autónoma de Buenos Aires",
+                telefono: process.env.EMPRESA_TELEFONO || "011-4000-0000",
+                email: process.env.EMPRESA_EMAIL || "contacto@500millas.com"
+            };
+
+            const receptor = {
+                nombre: venta.persona || "No especificado",
+                idPedido: venta.id_pedido ?? "-",
+                tipoMovimiento: venta.tipo,
+                estadoPago: venta.isPagado ? "Pagado" : "Pendiente"
+            };
+
+            const productos = venta.VentaDetalles.map((detalle, index) => ({
+                linea: index + 1,
+                nombre: detalle.Producto?.nombre || "N/A",
+                cantidad: detalle.cantidad,
+                precioUnitario: detalle.precio,
+                subtotal: detalle.cantidad * detalle.precio
+            }));
+
+            const remito = {
+                idVenta: venta.id_venta,
+                numeroRemito: `R-${venta.id_venta}`,
+                tipoRemito,
+                fechaEmision: venta.fecha,
+                emisor,
+                receptor,
+                productos,
+                total: productos.reduce((sum, item) => sum + item.subtotal, 0),
+                firmaReceptor: "_______________________________",
+                observaciones: "Documento generado para traslado. Verificar datos antes de imprimir.",
+                aclaraciones: [
+                    "Remito R (Oficial) requiere papel preimpreso autorizado con CAI para traslados fuera del predio.",
+                    "Remito X (Interno) es válido para traslados dentro del mismo predio y no requiere CAI.",
+                    "Imprimir respetando márgenes de 5mm para que los datos digitales se alineen con el formulario físico."
+                ]
+            };
+
+            return res.json({ ok: true, remito });
+        } catch (error) {
+            console.log("Error en obtenerRemito:", error);
+            return res.status(500).json({
+                ok: false,
+                error: error.message
+            });
+        }
+    },
+
     async editarVenta(req, res) {
         const transaction = await db.transaction();
 
