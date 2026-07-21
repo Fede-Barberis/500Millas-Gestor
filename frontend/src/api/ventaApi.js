@@ -50,3 +50,33 @@ export const editarVenta = async (id_venta, data) => {
         };
     }
 }
+
+export const cambiarEstadoPago = async (id_venta, isPagado) => {
+    try {
+        const res = await api.patch(`/ventas/${id_venta}/pago`, { isPagado });
+        return {
+            ok: true,
+            venta: res.data.venta || res.data
+        };
+    } catch (error) {
+        return {
+            ok: false,
+            error: error.response?.data?.error || error.response?.data?.message || 'Error al cambiar estado de pago'
+        };
+    }
+};
+
+export const generarRemito = async (id_venta) => {
+    try {
+        const res = await api.get(`/ventas/${id_venta}/remito`);
+        return {
+            ok: true,
+            remito: res.data.remito || res.data
+        };
+    } catch (error) {
+        return {
+            ok: false,
+            error: error.response?.data?.error || error.response?.data?.message || 'Error al generar remito'
+        };
+    }
+};

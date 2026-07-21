@@ -1,9 +1,10 @@
 import { useReactTable, getCoreRowModel, flexRender, createColumnHelper } from "@tanstack/react-table";
-import { Package, Search, Filter, Calendar, Edit2, Trash2, Handshake, HandCoins } from "lucide-react";
+import { Package, Search, Filter, Calendar, Edit2, Trash2, Handshake, HandCoins, CheckCircle2, Clock3 } from "lucide-react";
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 import ConfirmModal from "./ModalConfirmacion";
 
-export default function VentaTable({ ventas, productos, eliminarVenta, editarVenta }) {
+export default function VentaTable({ ventas, productos, eliminarVenta, editarVenta, toggleEstadoPago }) {
     const [modalOpen, setModalOpen] = useState(false);
     const [idAEliminar, setIdAEliminar] = useState(null);
 
@@ -55,6 +56,16 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
     const [fechaHasta, setFechaHasta] = useState("");
     const [isPagado, setIsPagado] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
+
+    const interpretarEstadoPago = (valor) => {
+        if (typeof valor === "boolean") return valor;
+        if (typeof valor === "number") return valor === 1;
+        if (typeof valor === "string") {
+            const normalizado = valor.trim().toLowerCase();
+            return ["1", "true", "si", "sí", "yes", "y"].includes(normalizado);
+        }
+        return Boolean(valor);
+    };
 
     const filteredData = useMemo(() => {
         return rows.filter(item => {
@@ -200,11 +211,15 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
         }),
         columnHelper.accessor("isPagado", {
             header: "Estado",
-            cell: info => (
-                <span className={`font-mono text-sm  ${info.getValue() ? "text-green-800 bg-green-100" : "text-red-800 bg-red-100"} px-2 py-1 rounded`}>
-                    {info.getValue() ? "Pagado" : "Pendiente"}
-                </span>
-            )
+            cell: info => {
+                const estaPagado = interpretarEstadoPago(info.getValue());
+
+                return (
+                    <span className={`font-mono text-sm ${estaPagado ? "text-green-800 bg-green-100" : "text-red-800 bg-red-100"} px-2 py-1 rounded`}>
+                        {estaPagado ? "Pagado" : "Pendiente"}
+                    </span>
+                );
+            }
         }),
         columnHelper.accessor("id_pedido", {
             header: "Pedido",
@@ -221,8 +236,34 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
                     v => v.id_venta === info.row.original.id_venta
                 );
 
+                const estaPagado = interpretarEstadoPago(info.row.original.isPagado);
+
+                const handleTogglePago = async () => {
+                    const resp = await toggleEstadoPago?.(info.row.original.id_venta, !estaPagado);
+
+                    if (resp?.ok) {
+                        toast.success(
+                            estaPagado ? "Venta marcada como pendiente" : "Venta marcada como pagada",
+                            {
+                                description: "Valor actualizado correctamente"
+                            }
+                        );
+                    } else {
+                        toast.error("No se pudo actualizar el estado", {
+                            description: resp?.error || "Intenta nuevamente"
+                        });
+                    }
+                };
+
                 return (
                     <div className="flex gap-2">
+                        <button
+                            onClick={handleTogglePago}
+                            className={`p-2 rounded-lg transition-colors ${estaPagado ? "text-amber-600 hover:bg-amber-50" : "text-green-600 hover:bg-green-50"}`}
+                            title={estaPagado ? "Marcar como pendiente" : "Marcar como pagado"}
+                        >
+                            {estaPagado ? <Clock3 className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                        </button>
                         <button
                             onClick={() => editarVenta(ventaCompleta)}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

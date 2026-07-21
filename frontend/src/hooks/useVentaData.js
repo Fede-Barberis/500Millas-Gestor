@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getVentas, crearVenta, editarVenta, eliminarVenta } from "../api/ventaApi.js" 
+import { getVentas, crearVenta, editarVenta, eliminarVenta, cambiarEstadoPago } from "../api/ventaApi.js" 
 import { getProductos } from "../api/productoApi.js";
 
 export function useVentaData() {
@@ -77,6 +77,20 @@ export function useVentaData() {
         }
     };
 
+    const toggleEstadoPago = async (id_venta, isPagado) => {
+        try {
+            const resp = await cambiarEstadoPago(id_venta, isPagado);
+            if (resp.ok) {
+                await fetchData({ showLoader: false });
+                return { ok: true };
+            } else {
+                return { ok: false, error: resp.error };
+            }
+        } catch (err) {
+            return { ok: false, error: err.message };
+        }
+    };
+
     return { 
         ventas,
         productos,
@@ -85,7 +99,8 @@ export function useVentaData() {
         reload: fetchData,
         agregarVenta,
         modificarVenta,
-        deleteVenta
+        deleteVenta,
+        toggleEstadoPago
     };
 
 }
