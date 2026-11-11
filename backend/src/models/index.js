@@ -15,6 +15,9 @@ import ProductoReceta from "./productoReceta.js";
 import ConsumoExtra from "./consumoExtra.js";
 import VentaDetalle from "./detalleVenta.js";
 import ReporteMensual from "./reporteMensual.js";
+import ReciboPago from "./reciboPago.js";
+import ReciboPagoVenta from "./reciboPagoVenta.js";
+import Remito from "./remito.js";
 
 // Definir asociaciones entre modelos
 
@@ -24,6 +27,13 @@ VentaDetalle.belongsTo(Producto, { foreignKey: 'id_producto' });
 
 Venta.hasMany(VentaDetalle, { foreignKey: "id_venta" });
 VentaDetalle.belongsTo(Venta, { foreignKey: "id_venta" });
+
+ReciboPago.hasMany(ReciboPagoVenta, { foreignKey: "id_recibo", onDelete: "CASCADE" });
+ReciboPagoVenta.belongsTo(ReciboPago, { foreignKey: "id_recibo" });
+Venta.hasMany(ReciboPagoVenta, { foreignKey: "id_venta" });
+ReciboPagoVenta.belongsTo(Venta, { foreignKey: "id_venta" });
+Venta.hasOne(Remito, { foreignKey: "id_venta" });
+Remito.belongsTo(Venta, { foreignKey: "id_venta" });
 
 // MateriaPrima -> CompraMP (Una materia prima puede tener muchas compras)
 MateriaPrima.hasMany(CompraMP, { foreignKey: 'id_materiaPrima' });
@@ -110,5 +120,8 @@ export {
     DetalleProduccion,
     ConsumoExtra,
     VentaDetalle,
-    ReporteMensual
+    ReporteMensual,
+    ReciboPago,
+    ReciboPagoVenta,
+    Remito
 };

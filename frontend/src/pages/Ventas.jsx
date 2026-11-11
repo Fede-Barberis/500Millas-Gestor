@@ -1,11 +1,13 @@
 import { useState, useMemo } from "react";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, ReceiptText } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { useVentaData } from "../hooks/useVentaData.js";
 import { generarRemito } from "../api/ventaApi.js";
 import VentaTable from "../components/VentaTabla.jsx";
 import VentaForm from "../components/VentaForm.jsx";
 import RemitoModal from "../components/RemitoModal.jsx";
+import RemitosHistorialModal from "../components/RemitosHistorialModal.jsx";
+import RecibosPagoModal from "../components/RecibosPagoModal.jsx";
 import { Loading, ErrorMessage } from "../components/Loading.jsx";
 import { toast } from "sonner";
 
@@ -18,6 +20,23 @@ export default function Ventas() {
     const [remitoVentaId, setRemitoVentaId] = useState("");
     const [remitoLoading, setRemitoLoading] = useState(false);
     const [remitoError, setRemitoError] = useState("");
+    const [modoRecibos, setModoRecibos] = useState(false);
+    const [ventasSeleccionadas, setVentasSeleccionadas] = useState([]);
+    const [reciboModal, setReciboModal] = useState(null);
+    const [historialRemitosOpen, setHistorialRemitosOpen] = useState(false);
+
+    const toggleSeleccionVenta = (venta) => {
+        setVentasSeleccionadas((actual) => {
+            const selected = actual.includes(venta.id_venta);
+            if (selected) return actual.filter((id) => id !== venta.id_venta);
+            const clienteActual = ventas.find((v) => actual.includes(v.id_venta))?.persona;
+            if (clienteActual && clienteActual.toLowerCase() !== venta.persona?.toLowerCase()) {
+                toast.error("Agrupa las ventas de un solo cliente por recibo");
+                return actual;
+            }
+            return [...actual, venta.id_venta];
+        });
+    };
 
     const abrirModalCrear = () => {
         setVentaAEditar(null); // Limpiar datos de edición
@@ -65,6 +84,7 @@ export default function Ventas() {
             }
 
             abrirRemitoEnNuevaPestana(resp.remito);
+            fetchData({ showLoader: false });
             setRemitoModalOpen(false);
             toast.success("Remito generado", {
                 description: "Se abrió una vista de impresión para el remito"
@@ -255,7 +275,7 @@ export default function Ventas() {
                     </p>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-wrap justify-center gap-3 sm:justify-end">
                     <button
                         onClick={() => setModalOpen(true)}
                         className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-400 to-emerald-500 text-white font-heading font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg"
@@ -263,13 +283,16 @@ export default function Ventas() {
                         <Plus className="w-5 h-5" />
                         Nueva Venta
                     </button>
-                        <button
+                    <button onClick={() => { setModoRecibos(true); setVentasSeleccionadas([]); }} className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-600 to-green-500 px-5 py-3 font-semibold text-white shadow-md transition hover:from-emerald-700 hover:to-green-600"><ReceiptText className="h-5 w-5" />Generar recibo</button>
+                    <button
                         onClick={abrirModalRemito}
                         className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-heading font-semibold rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-sm hover:shadow-md"
                     >
                         <FileText className="w-5 h-5" />
                         Generar Remito
                     </button>
+                    <button onClick={() => setHistorialRemitosOpen(true)} className="flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-5 py-3 font-semibold text-blue-800 shadow-sm transition hover:bg-blue-50"><FileText className="h-5 w-5" />Historial remitos</button>
+                    <button onClick={() => setReciboModal("historial")} className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-5 py-3 font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-50"><ReceiptText className="h-5 w-5" />Historial recibos</button>
                 </div>
             </div>
             
@@ -279,6 +302,12 @@ export default function Ventas() {
                 eliminarVenta={deleteVenta}
                 editarVenta={abrirModalEditar}
                 toggleEstadoPago={toggleEstadoPago}
+                seleccionActiva={modoRecibos}
+                ventasSeleccionadas={ventasSeleccionadas}
+                onToggleSeleccion={toggleSeleccionVenta}
+                onSeleccionarCliente={(ids) => setVentasSeleccionadas(ids)}
+                onConfirmarRecibo={() => setReciboModal("crear")}
+                onCancelarSeleccion={() => { setModoRecibos(false); setVentasSeleccionadas([]); }}
             />
 
             <div className='space-y-0'>
@@ -304,6 +333,8 @@ export default function Ventas() {
                     error={remitoError}
                     onGenerate={generarRemitoEnPestana}
                 />
+                {reciboModal && <RecibosPagoModal mode={reciboModal} ventas={reciboModal === "crear" ? ventas.filter((v) => ventasSeleccionadas.includes(v.id_venta)) : []} onClose={() => setReciboModal(null)} onCreated={() => { fetchData({ showLoader: false }); setVentasSeleccionadas([]); setModoRecibos(false); }} />}
+                {historialRemitosOpen && <RemitosHistorialModal onClose={() => setHistorialRemitosOpen(false)} onView={abrirRemitoEnNuevaPestana} />}
             </div>
         </div>
     )

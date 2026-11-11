@@ -68,7 +68,7 @@ export const cambiarEstadoPago = async (id_venta, isPagado) => {
 
 export const generarRemito = async (id_venta) => {
     try {
-        const res = await api.get(`/ventas/${id_venta}/remito`);
+        const res = await api.post(`/ventas/${id_venta}/remito`);
         return {
             ok: true,
             remito: res.data.remito || res.data
@@ -78,5 +78,32 @@ export const generarRemito = async (id_venta) => {
             ok: false,
             error: error.response?.data?.error || error.response?.data?.message || 'Error al generar remito'
         };
+    }
+};
+
+export const getRemitos = async () => {
+    try {
+        const res = await api.get("/ventas/remitos");
+        return res.data;
+    } catch (error) {
+        return { ok: false, error: error.response?.data?.error || error.response?.data?.message || "No se pudo cargar el historial de remitos" };
+    }
+};
+
+export const crearReciboPago = async (payload) => {
+    try {
+        const res = await api.post("/ventas/recibos", payload);
+        return res.data;
+    } catch (error) {
+        return { ok: false, error: error.response?.data?.error || error.response?.data?.message || "No se pudo registrar el pago" };
+    }
+};
+
+export const getRecibosPago = async () => {
+    try {
+        const res = await api.get("/ventas/recibos");
+        return res.data;
+    } catch (error) {
+        return { ok: false, error: error.response?.data?.error || error.response?.data?.message || "No se pudo cargar el historial" };
     }
 };
