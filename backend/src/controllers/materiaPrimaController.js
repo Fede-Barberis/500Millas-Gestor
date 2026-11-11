@@ -38,6 +38,62 @@ const materiaPrimaController =  {
         }
     },
 
+    async descontarStock(req, res) {
+        const transaction = await db.transaction();
+
+        try {
+            const idMateriaPrima = Number(req.body.id_materiaPrima);
+            const cantidad = Number(req.body.cantidad);
+
+            if (!Number.isInteger(idMateriaPrima) || idMateriaPrima <= 0 || !Number.isFinite(cantidad) || cantidad <= 0) {
+                await transaction.rollback();
+                return res.status(400).json({ ok: false, error: "Seleccioná una materia prima e ingresá una cantidad mayor que cero" });
+            }
+
+            if (Math.abs(cantidad * 100 - Math.round(cantidad * 100)) > 1e-8) {
+                await transaction.rollback();
+                return res.status(400).json({ ok: false, error: "La cantidad puede tener como máximo dos decimales" });
+            }
+
+            const mp = await MateriaPrima.findByPk(idMateriaPrima, {
+                transaction,
+                lock: transaction.LOCK.UPDATE
+            });
+            if (!mp) {
+                await transaction.rollback();
+                return res.status(404).json({ ok: false, error: "Materia prima no encontrada" });
+            }
+
+            if (mp.unidad_base === "unidad" && !Number.isInteger(cantidad)) {
+                await transaction.rollback();
+                return res.status(400).json({ ok: false, error: "La cantidad debe ser un número entero para esta materia prima" });
+            }
+
+            if (Number(mp.stock) < cantidad) {
+                await transaction.rollback();
+                return res.status(409).json({ ok: false, error: `Stock insuficiente. Disponible: ${mp.stock} ${mp.unidad_base}` });
+            }
+
+            await actualizarStockMateriaPrima(idMateriaPrima, cantidad, "sub", transaction);
+            const stockRestante = Number(mp.stock) - cantidad;
+            await transaction.commit();
+
+            return res.json({
+                ok: true,
+                message: "Stock descontado correctamente",
+                materiaPrima: { id_materiaPrima: idMateriaPrima, stock: stockRestante, unidad_base: mp.unidad_base }
+            });
+        } catch (error) {
+            await transaction.rollback();
+            console.error("Error al descontar stock de materia prima:", error);
+            const esStockInsuficiente = error.message?.startsWith("Stock insuficiente");
+            return res.status(esStockInsuficiente ? 409 : 500).json({
+                ok: false,
+                error: esStockInsuficiente ? "El stock cambió y ya no alcanza para ese descuento. Actualizá la pantalla e intentá de nuevo." : error.message
+            });
+        }
+    },
+
     async crearCompraMp(req, res) {
         const transaction = await db.transaction();
 

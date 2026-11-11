@@ -1,14 +1,16 @@
 import useMateriaPrimaData from '../hooks/useMateriaPrimaData'
 import MateriaPrimaTable from '../components/MateriaPrimaTabla'
 import { useState } from 'react';
-import { Plus, Package } from 'lucide-react';
+import { Plus, Package, MinusCircle } from 'lucide-react';
 import MateriaPrimaCard from '../components/MateriaPrimaCard';
 import CompraMpForm from '../components/CompraMpForm';
 import { Loading, ErrorMessage } from '../components/Loading';
+import DescontarStockModal from '../components/DescontarStockModal';
 
 export default function MateriaPrima() {
-    const { materiaPrimas, comprasMp, loading, error, reload: fetchData, modificarCompraMp, deleteCompraMp } = useMateriaPrimaData();
+    const { materiaPrimas, comprasMp, loading, error, reload: fetchData, modificarCompraMp, deleteCompraMp, descontarStockMateriaPrima } = useMateriaPrimaData();
     const [modalOpen, setModalOpen] = useState(false);
+    const [descontarStockOpen, setDescontarStockOpen] = useState(false);
     const [produccionAEditar, setProduccionAEditar] = useState(null);
 
     const abrirModalCrear = () => {
@@ -41,13 +43,23 @@ export default function MateriaPrima() {
                     </p>
                 </div>
                 
-                <button
-                    onClick={abrirModalCrear}
-                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-red-300 text-white font-heading font-semibold rounded-lg hover:from-yellow-500 hover:to-red-500 transition-all duration-300 shadow-md hover:shadow-lg"
-                >
-                    <Plus className="w-5 h-5" />
-                    Registrar Compra MP
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                        onClick={() => setDescontarStockOpen(true)}
+                        disabled={materiaPrimas.length === 0}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-red-500 to-rose-400 text-white font-heading font-semibold rounded-lg hover:from-red-600 hover:to-rose-500 transition-all duration-300 shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <MinusCircle className="w-5 h-5" />
+                        Descontar stock
+                    </button>
+                    <button
+                        onClick={abrirModalCrear}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-red-300 text-white font-heading font-semibold rounded-lg hover:from-yellow-500 hover:to-red-500 transition-all duration-300 shadow-md hover:shadow-lg"
+                    >
+                        <Plus className="w-5 h-5" />
+                        Registrar Compra MP
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -101,6 +113,14 @@ export default function MateriaPrima() {
                     />
                 )}
             </div>
+
+            {descontarStockOpen && (
+                <DescontarStockModal
+                    materiaPrimas={materiaPrimas}
+                    onClose={() => setDescontarStockOpen(false)}
+                    onSubmit={descontarStockMateriaPrima}
+                />
+            )}
         </div>
     );
 }

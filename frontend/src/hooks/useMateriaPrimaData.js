@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getMateriaPrima, getComprasMp, crearCompraMp, editarCompraMp, eliminarCompraMp } from "../api/materiaPrimaApi" 
+import { getMateriaPrima, getComprasMp, crearCompraMp, editarCompraMp, eliminarCompraMp, descontarStockMateriaPrima as descontarStockApi } from "../api/materiaPrimaApi"
 
 export function useMateriaPrimaData() {
     const [materiaPrimas, setMateriaPrima] = useState([])
@@ -70,6 +70,17 @@ export function useMateriaPrimaData() {
         }
     };
 
+    const descontarStockMateriaPrima = async (id_materiaPrima, cantidad) => {
+        try {
+            const resp = await descontarStockApi({ id_materiaPrima, cantidad });
+            if (!resp.ok) return resp;
+            await fetchData();
+            return { ok: true, materiaPrima: resp.materiaPrima };
+        } catch (err) {
+            return { ok: false, error: err.message };
+        }
+    };
+
     return { 
         materiaPrimas,
         comprasMp,
@@ -78,7 +89,8 @@ export function useMateriaPrimaData() {
         reload: fetchData,
         agregarCompraMp,
         modificarCompraMp,
-        deleteCompraMp
+        deleteCompraMp,
+        descontarStockMateriaPrima
     };
 
 }

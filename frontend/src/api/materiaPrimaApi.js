@@ -39,6 +39,18 @@ export const crearCompraMp = async (payload) => {
     }
 }; 
 
+export const descontarStockMateriaPrima = async (payload) => {
+    try {
+        const response = await api.post("/materiaPrima/descontarStock", payload);
+        return response.data;
+    } catch (error) {
+        return {
+            ok: false,
+            error: error.response?.data?.error || error.response?.data?.message || "Error al descontar el stock de materia prima"
+        };
+    }
+};
+
 export const eliminarCompraMp = async (id_compra) => {
     try {
         const res = await api.delete(`/materiaPrima/compraMp/${id_compra}`);
