@@ -13,20 +13,48 @@ const ventaController = {
     async obtenerRecibos(req, res) {
         try {
             const recibos = await ReciboPago.findAll({
-                include: [{ model: ReciboPagoVenta, include: [{ model: Venta, include: [{ model: VentaDetalle }] }] }],
                 order: [["id_recibo", "DESC"]]
             });
-            return res.json(recibos.map((recibo) => ({
-                ...recibo.toJSON(),
-                numero: `REC-${String(recibo.id_recibo).padStart(6, "0")}`,
-                emisor: {
-                    razonSocial: process.env.EMPRESA_RAZON_SOCIAL || "Alfajores 500 Millas",
-                    cuit: process.env.EMPRESA_CUIT || null,
-                    domicilio: process.env.EMPRESA_DOMICILIO || null,
-                    telefono: process.env.EMPRESA_TELEFONO || null,
-                    email: process.env.EMPRESA_EMAIL || null
-                }
-            })));
+            const pagos = await ReciboPagoVenta.findAll({
+                where: { id_recibo: recibos.map((recibo) => recibo.id_recibo) },
+                order: [["id_recibo_venta", "ASC"]]
+            });
+            const ventasIncluidas = await Venta.findAll({
+                where: { id_venta: [...new Set(pagos.map((pago) => pago.id_venta))] },
+                include: [{ model: VentaDetalle }]
+            });
+            const ventaPorId = new Map(ventasIncluidas.map((venta) => [Number(venta.id_venta), venta]));
+            const pagosPorRecibo = new Map();
+            pagos.forEach((pago) => {
+                const idRecibo = Number(pago.id_recibo);
+                if (!pagosPorRecibo.has(idRecibo)) pagosPorRecibo.set(idRecibo, []);
+                pagosPorRecibo.get(idRecibo).push(pago);
+            });
+            return res.json(recibos.map((recibo) => {
+                const reciboJson = recibo.toJSON();
+                const detalle = (pagosPorRecibo.get(Number(recibo.id_recibo)) || []).map((pago) => {
+                    const venta = ventaPorId.get(Number(pago.id_venta));
+                    const detallesVenta = venta?.VentaDetalles || [];
+                    return {
+                        id_venta: pago.id_venta,
+                        fecha: venta?.fecha || null,
+                        total: detallesVenta.reduce((sum, item) => sum + Number(item.precio || 0) * Number(item.cantidad || 0), 0),
+                        importe: Number(pago.importe)
+                    };
+                });
+                return {
+                    ...reciboJson,
+                    numero: `REC-${String(recibo.id_recibo).padStart(6, "0")}`,
+                    detalle,
+                    emisor: {
+                        razonSocial: process.env.EMPRESA_RAZON_SOCIAL || "Alfajores 500 Millas",
+                        cuit: process.env.EMPRESA_CUIT || null,
+                        domicilio: process.env.EMPRESA_DOMICILIO || null,
+                        telefono: process.env.EMPRESA_TELEFONO || null,
+                        email: process.env.EMPRESA_EMAIL || null
+                    }
+                };
+            }));
         } catch (error) {
             return res.status(500).json({ ok: false, error: error.message });
         }
