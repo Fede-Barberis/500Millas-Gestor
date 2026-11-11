@@ -1,55 +1,23 @@
-import { useReactTable, getCoreRowModel, flexRender, createColumnHelper } from "@tanstack/react-table";
-import { Package, Search, Filter, Calendar, Edit2, Trash2, Handshake, HandCoins, CheckCircle2, Clock3 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { Fragment, useMemo, useState } from "react";
+import { Calendar, CheckCircle2, ChevronDown, ChevronRight, Edit2, Filter, HandCoins, Handshake, Package, Search, Trash2, Clock3 } from "lucide-react";
 import { toast } from "sonner";
 import ConfirmModal from "./ModalConfirmacion";
 
+const money = (value) => Number(value || 0).toLocaleString("es-AR", { style: "currency", currency: "ARS" });
+const formatDate = (value) => {
+    if (!value) return "-";
+    const [year, month, day] = String(value).slice(0, 10).split("-");
+    return new Date(Number(year), Number(month) - 1, Number(day)).toLocaleDateString("es-ES");
+};
+const formatQty = (value) => {
+    const number = Number(value || 0);
+    return number % 1 === 0 ? number.toFixed(0) : number.toFixed(2);
+};
+
 export default function VentaTable({ ventas, productos, eliminarVenta, editarVenta, toggleEstadoPago }) {
+    const [expanded, setExpanded] = useState({});
     const [modalOpen, setModalOpen] = useState(false);
     const [idAEliminar, setIdAEliminar] = useState(null);
-
-    const abrirModal = (id) => {
-        setIdAEliminar(id);
-        setModalOpen(true);
-    };
-
-    const confirmarEliminacion = async () => {
-        await eliminarVenta(idAEliminar);
-        setModalOpen(false);
-        setIdAEliminar(null);
-    };
-
-    const columnHelper = createColumnHelper();
-
-    // ----------------------------------------
-    // NORMALIZAR VENTAS CON MULTIPLES PRODUCTOS
-    // ----------------------------------------
-    const rows = useMemo(() => {
-        const lista = [];
-        ventas.forEach(v => {
-            v.VentaDetalles?.forEach(d => {
-                lista.push({
-                    id_venta: v.id_venta,
-                    fecha: v.fecha,
-                    producto: d.Producto?.nombre,
-                    cantidad: d.cantidad,
-                    precio: d.precio,
-                    total: d.precio * d.cantidad,
-                    persona: v.persona,
-                    tipo: v.tipo || "venta",
-                    id_pedido: v.id_pedido,
-                    isPagado: v.isPagado
-                });
-            });
-        });
-        return lista;
-    }, [ventas]);
-
-
-    // -------------------------
-    // FILTROS
-    // -------------------------
-    // Filtros
     const [vFiltro, setvFiltro] = useState("all");
     const [tipoFiltro, setTipoFiltro] = useState("all");
     const [fechaDesde, setFechaDesde] = useState("");
@@ -58,421 +26,64 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
     const [searchTerm, setSearchTerm] = useState("");
 
     const interpretarEstadoPago = (valor) => {
-        if (typeof valor === "boolean") return valor;
-        if (typeof valor === "number") return valor === 1;
-        if (typeof valor === "string") {
-            const normalizado = valor.trim().toLowerCase();
-            return ["1", "true", "si", "sí", "yes", "y"].includes(normalizado);
-        }
+        if (typeof valor === "string") return ["1", "true", "si", "sí", "yes", "y"].includes(valor.trim().toLowerCase());
         return Boolean(valor);
     };
+    const rows = useMemo(() => ventas.map((venta) => {
+        const detalles = venta.VentaDetalles || [];
+        return { ...venta, detalles, total: detalles.reduce((sum, d) => sum + Number(d.precio || 0) * Number(d.cantidad || 0), 0) };
+    }).filter((venta) => {
+        const matchesProduct = vFiltro === "all" || venta.detalles.some((d) => d.Producto?.nombre === vFiltro);
+        const matchesSearch = !searchTerm || (venta.persona || "").toLowerCase().includes(searchTerm.toLowerCase()) || String(venta.id_pedido || "").includes(searchTerm) || String(venta.id_venta).includes(searchTerm);
+        const paid = interpretarEstadoPago(venta.isPagado);
+        return matchesProduct && matchesSearch && (!fechaDesde || venta.fecha >= fechaDesde) && (!fechaHasta || venta.fecha <= fechaHasta) && (tipoFiltro === "all" || (venta.tipo || "venta") === tipoFiltro) && (isPagado === "all" || paid === (isPagado === "1"));
+    }), [ventas, vFiltro, tipoFiltro, fechaDesde, fechaHasta, isPagado, searchTerm]);
 
-    const filteredData = useMemo(() => {
-        return rows.filter(item => {
-            // Filtro por producto
-            if (vFiltro !== "all" && item.producto !== vFiltro)
-                return false;
+    const toggleExpanded = (id) => setExpanded((current) => ({ ...current, [id]: !current[id] }));
+    const handleTogglePago = async (venta) => {
+        const paid = interpretarEstadoPago(venta.isPagado);
+        const resp = await toggleEstadoPago?.(venta.id_venta, !paid);
+        if (resp?.ok) toast.success(paid ? "Venta marcada como pendiente" : "Venta marcada como pagada", { description: "Valor actualizado correctamente" });
+        else toast.error("No se pudo actualizar el estado", { description: resp?.error || "Intenta nuevamente" });
+    };
 
-            // Filtro por búsqueda (cliente o id_pedido)
-            if (
-                searchTerm &&
-                !(item.persona ?? "").toLowerCase().includes(searchTerm.toLowerCase()) &&
-                !(String(item.id_pedido ?? "")).includes(searchTerm)
-            ) {
-                return false;
-            }
-
-            // Filtro por fecha desde
-            if (fechaDesde && item.fecha < fechaDesde)
-                return false;
-
-            // Filtro por fecha hasta
-            if (fechaHasta && item.fecha > fechaHasta)
-                return false;
-
-            // Filtro por tipo de movimiento
-            if (tipoFiltro !== "all" && item.tipo !== tipoFiltro)
-                return false;
-
-            // --- Filtro por estado de pago (robusto ante boolean/num/string) ---
-            if (isPagado !== "all") {
-            const seleccionadoEsPagado = isPagado === "1" || isPagado === "true";
-            const itemEsPagado = Boolean(
-                typeof item.isPagado === "string" ? Number(item.isPagado) : item.isPagado
-            );
-
-            if (itemEsPagado !== seleccionadoEsPagado) return false;
-            }
-
-            return true;
-        });
-    }, [rows, vFiltro, tipoFiltro, fechaDesde, fechaHasta, isPagado, searchTerm]);
-
-    // ----------------------------------------
-    // COLUMNAS CORREGIDAS
-    // ----------------------------------------
-    // Columnas
-    const columns = [
-        columnHelper.accessor("id_venta", {
-            header: "ID",
-            cell: info => (
-                <div className="flex items-center gap-2">
-                    <span className="font-medium">{info.getValue()}</span>
-                </div>
-            )
-        }),
-        columnHelper.accessor("fecha", {
-            header: "Fecha Venta",
-            cell: info => {
-                const fechaStr = info.getValue();
-                const [year, month, day] = fechaStr.split('-');
-                const fecha = new Date(year, month - 1, day); // Crear fecha local
-
-                return (
-                    <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="font-normal">{fecha.toLocaleDateString('es-ES')}</span>
-                    </div>
-                )
-            }
-        }),
-        columnHelper.accessor("producto", {
-            header: "Producto",
-            cell: info => (
-                <div className="flex items-center gap-2">
-                    <Package className="w-4 h-4 text-blue-500" />
-                    <span className="font-semibold text-gray-800">{info.getValue()}</span>
-                </div>
-            )
-        }),
-        columnHelper.accessor("cantidad", {
-            header: "Cantidad",
-            cell: info => {
-                // Redondear o formatear sin decimales si es un número entero
-                const cantidad = parseFloat(info.getValue());
-                const cantidadFormateada = cantidad % 1 === 0 
-                    ? cantidad.toFixed(0)  // Sin decimales si es entero
-                    : cantidad.toFixed(2); // Con 2 decimales si tiene decimales
-                
-                return (
-                    <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
-                        {cantidadFormateada}
-                    </span>
-                );
-            }
-        }),
-        columnHelper.accessor("precio", {
-            header: "Precio",
-            cell: info => (
-                <span className="font-mono text-sm bg-yellow-100 px-2 py-1 rounded">
-                    {info.getValue()}
-                </span>
-            )
-        }),
-        columnHelper.accessor("total", {
-            header: "Total",
-            cell: info => (
-                <span className="font-mono text-sm bg-orange-100 px-2 py-1 rounded">
-                    {info.getValue()}
-                </span>
-            )
-        }),
-        columnHelper.accessor("persona", {
-            header: "Cliente",
-            cell: info => (
-                <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                    {info.getValue()}
-                </span>
-            )
-        }),
-        columnHelper.accessor("tipo", {
-            header: "Tipo",
-            cell: info => {
-                const tipo = info.getValue();
-                const etiquetas = {
-                    venta: 'Venta',
-                    donacion: 'Donación',
-                    cajas_negras: 'Cajas Negras',
-                    consumo_propio: 'Consumo Propio'
-                };
-                const colores = {
-                    venta: 'text-green-800 bg-green-100',
-                    donacion: 'text-blue-800 bg-blue-100',
-                    cajas_negras: 'text-purple-800 bg-purple-100',
-                    consumo_propio: 'text-yellow-800 bg-yellow-100'
-                };
-
-                return (
-                    <span className={`font-mono text-sm ${colores[tipo] || 'text-gray-800 bg-gray-100'} px-2 py-1 rounded`}>
-                        {etiquetas[tipo] || tipo}
-                    </span>
-                );
-            }
-        }),
-        columnHelper.accessor("isPagado", {
-            header: "Estado",
-            cell: info => {
-                const estaPagado = interpretarEstadoPago(info.getValue());
-
-                return (
-                    <span className={`font-mono text-sm ${estaPagado ? "text-green-800 bg-green-100" : "text-red-800 bg-red-100"} px-2 py-1 rounded`}>
-                        {estaPagado ? "Pagado" : "Pendiente"}
-                    </span>
-                );
-            }
-        }),
-        columnHelper.accessor("id_pedido", {
-            header: "Pedido",
-            cell: info => (
-                <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                    {info.getValue() || "-"}
-                </span>
-            )
-        }),
-        columnHelper.accessor("acciones", {
-            header: "Acciones",
-            cell: info => {
-                const ventaCompleta = ventas.find(
-                    v => v.id_venta === info.row.original.id_venta
-                );
-
-                const estaPagado = interpretarEstadoPago(info.row.original.isPagado);
-
-                const handleTogglePago = async () => {
-                    const resp = await toggleEstadoPago?.(info.row.original.id_venta, !estaPagado);
-
-                    if (resp?.ok) {
-                        toast.success(
-                            estaPagado ? "Venta marcada como pendiente" : "Venta marcada como pagada",
-                            {
-                                description: "Valor actualizado correctamente"
-                            }
-                        );
-                    } else {
-                        toast.error("No se pudo actualizar el estado", {
-                            description: resp?.error || "Intenta nuevamente"
-                        });
-                    }
-                };
-
-                return (
-                    <div className="flex gap-2">
-                        <button
-                            onClick={handleTogglePago}
-                            className={`p-2 rounded-lg transition-colors ${estaPagado ? "text-amber-600 hover:bg-amber-50" : "text-green-600 hover:bg-green-50"}`}
-                            title={estaPagado ? "Marcar como pendiente" : "Marcar como pagado"}
-                        >
-                            {estaPagado ? <Clock3 className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-                        </button>
-                        <button
-                            onClick={() => editarVenta(ventaCompleta)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Editar"
-                        >
-                            <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                            onClick={() => abrirModal(info.row.original.id_venta)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Eliminar"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </button>
-                    </div>
-                )
-            }
-        })
-    ];
-
-    const table = useReactTable({
-        data: filteredData,
-        columns,
-        getCoreRowModel: getCoreRowModel(),
-    });
-    
-
-    return (
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            {/* HEADER */}
-            <div className="bg-gradient-to-r from-emerald-500 to-green-400 px-6 py-5">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                            <Handshake className="w-6 h-6" />
-                            Registro de Ventas
-                        </h2>
-                        <p className="text-green-100 text-sm mt-1">
-                            {filteredData.length} {filteredData.length === 1 ? 'registro' : 'registros'} encontrados
-                        </p>
-                    </div>
-
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Buscar por cliente..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-2 rounded-lg w-full md:w-80"
-                        />
-                    </div>
-                </div>
+    return <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-emerald-500 to-green-400 px-6 py-5">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div><h2 className="text-2xl font-bold text-white flex items-center gap-2"><Handshake className="w-6 h-6" />Registro de Ventas</h2><p className="text-green-100 text-sm mt-1">{rows.length} {rows.length === 1 ? "venta" : "ventas"} encontradas</p></div>
+                <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" /><input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Buscar cliente o ID..." className="pl-10 pr-4 py-2 rounded-lg w-full md:w-80" /></div>
             </div>
-
-            {/* Filtros */}
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                <div className="flex items-center gap-2 mb-3">
-                    <Filter className="w-4 h-4 text-gray-600" />
-                    <span className="text-sm font-semibold text-gray-700">Filtros</span>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
-                    {/* Filtro por Producto */}
-                    <div>
-                        <label className="block mb-1.5 text-sm font-medium text-gray-700">
-                            Insumo
-                        </label>
-                        <select
-                            className="font-heading border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
-                            value={vFiltro}
-                            onChange={e => setvFiltro(e.target.value)}
-                        >
-                            <option value="all">Todos los insumos</option>
-                            {productos.map(p => (
-                                <option key={p.id_producto} value={p.nombre}>
-                                    {p.nombre}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Filtro por Tipo */}
-                    <div>
-                        <label className="block mb-1.5 text-sm font-medium text-gray-700">
-                            Tipo de Movimiento
-                        </label>
-                        <select
-                            className="font-heading border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
-                            value={tipoFiltro}
-                            onChange={e => setTipoFiltro(e.target.value)}
-                        >
-                            <option value="all">Todos</option>
-                            <option value="venta">Venta</option>
-                            <option value="donacion">Donación</option>
-                            <option value="cajas_negras">Cajas Negras</option>
-                            <option value="consumo_propio">Consumo Propio</option>
-                        </select>
-                    </div>
-
-                    {/* Filtro Fecha Desde */}
-                    <div>
-                        <label className="block mb-1.5 text-sm font-medium text-gray-700">
-                            Fecha desde
-                        </label>
-                        <input
-                            type="date"
-                            className="font-heading border border-gray-300 p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
-                            value={fechaDesde}
-                            onChange={e => setFechaDesde(e.target.value)}
-                        />
-                    </div>
-
-                    {/* Filtro Fecha Hasta */}
-                    <div>
-                        <label className="block mb-1.5 text-sm font-medium text-gray-700">
-                            Fecha hasta
-                        </label>
-                        <input
-                            type="date"
-                            className="font-heading border border-gray-300 p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
-                            value={fechaHasta}
-                            onChange={e => setFechaHasta(e.target.value)}
-                        />
-                    </div>
-
-                    {/* Filtro estado de pago */}
-                    <div>
-                        <label className="block mb-1.5 text-sm font-medium text-gray-700">
-                            Estado de Pago
-                        </label>
-                        <select
-                            className="font-heading border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400 transition-all"
-                            value={isPagado}
-                            onChange={e => setIsPagado(e.target.value)}
-                        >
-                            <option value="all">Todos</option>
-                            <option value="1">Pagado</option>
-                            <option value="0">Pendiente</option>
-                        </select>
-                    </div>
-                </div>
-
-                {/* Botón limpiar filtros */}
-                {(vFiltro !== "all" || tipoFiltro !== "all" || fechaDesde || fechaHasta || isPagado !=="all" || searchTerm) && (
-                    <button
-                        onClick={() => {
-                            setvFiltro("all");
-                            setTipoFiltro("all");
-                            setFechaDesde("");
-                            setFechaHasta("");
-                            setIsPagado("all");
-                            setSearchTerm("");
-                        }}
-                        className="mt-3 text-sm text-green-500 hover:text-green-600 font-medium"
-                    >
-                        Limpiar filtros
-                    </button>
-                )}
-            </div>
-
-            {/* TABLA */}
-            <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
-                <table className="w-full">
-                    <thead className="sticky top-0">
-                        {table.getHeaderGroups().map((hg) => (
-                            <tr key={hg.id} className="bg-gray-100">
-                                {hg.headers.map((header) => (
-                                    <th key={header.id} className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                                        {flexRender(header.column.columnDef.header, header.getContext())}
-                                    </th>
-                                ))}
-                            </tr>
-                        ))}
-                    </thead>
-
-                    <tbody>
-                        {table.getRowModel().rows.length === 0 ? (
-                            <tr>
-                                <td colSpan={columns.length} className="px-6 py-12 text-center text-gray-500">
-                                    <HandCoins className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                    <p className="text-lg font-medium">No hay ventas registradas</p>
-                                </td>
-                            </tr>
-                        ) : (
-                            table.getRowModel().rows.map((row, index) => (
-                                <tr key={row.id} 
-                                    className={`hover:bg-green-50 transition-colors ${
-                                        index % 2 === 0 ? 'bg-white' : 'bg-gray-100 bg-opacity-50'
-                                    }`}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <td key={cell.id} className="px-6 py-4">
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
-
-            <ConfirmModal
-                open={modalOpen}
-                onClose={() => setModalOpen(false)}
-                onConfirm={confirmarEliminacion}
-                title="Confirmar eliminación"
-                message="¿Seguro que deseas eliminar esta venta?"
-            />
         </div>
-    );
+        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-center gap-2 mb-3"><Filter className="w-4 h-4 text-gray-600" /><span className="text-sm font-semibold text-gray-700">Filtros</span></div>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <label className="text-sm font-medium text-gray-700">Producto<select className="mt-1 border border-gray-300 p-2.5 rounded-lg w-full" value={vFiltro} onChange={(e) => setvFiltro(e.target.value)}><option value="all">Todos</option>{productos.map((p) => <option key={p.id_producto} value={p.nombre}>{p.nombre}</option>)}</select></label>
+                <label className="text-sm font-medium text-gray-700">Tipo<select className="mt-1 border border-gray-300 p-2.5 rounded-lg w-full" value={tipoFiltro} onChange={(e) => setTipoFiltro(e.target.value)}><option value="all">Todos</option><option value="venta">Venta</option><option value="donacion">Donación</option><option value="cajas_negras">Cajas Negras</option><option value="consumo_propio">Consumo Propio</option></select></label>
+                <label className="text-sm font-medium text-gray-700">Desde<input type="date" className="mt-1 border border-gray-300 p-2 rounded-lg w-full" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} /></label>
+                <label className="text-sm font-medium text-gray-700">Hasta<input type="date" className="mt-1 border border-gray-300 p-2 rounded-lg w-full" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} /></label>
+                <label className="text-sm font-medium text-gray-700">Pago<select className="mt-1 border border-gray-300 p-2.5 rounded-lg w-full" value={isPagado} onChange={(e) => setIsPagado(e.target.value)}><option value="all">Todos</option><option value="1">Pagado</option><option value="0">Pendiente</option></select></label>
+            </div>
+        </div>
+        <div className="max-h-[500px] overflow-auto"><table className="w-full min-w-[900px]">
+            <thead className="sticky top-0 z-10 bg-gray-100"><tr>{["", "ID", "Fecha", "Cliente", "Productos", "Total", "Tipo", "Estado", "Pedido", "Acciones"].map((h) => <th key={h} className="px-5 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">{h}</th>)}</tr></thead>
+            <tbody className="divide-y divide-slate-200">{rows.length === 0 ? <tr><td colSpan={10} className="px-6 py-12 text-center text-gray-500"><HandCoins className="w-12 h-12 text-gray-300 mx-auto mb-3" />No hay ventas registradas</td></tr> : rows.map((venta, index) => {
+                const paid = interpretarEstadoPago(venta.isPagado);
+                const id = venta.id_venta;
+                const tipo = venta.tipo || "venta";
+                const labels = { venta: "Venta", donacion: "Donación", cajas_negras: "Cajas Negras", consumo_propio: "Consumo Propio" };
+                return <Fragment key={id}>
+                    <tr className={`transition-colors hover:bg-green-50 ${index % 2 ? "bg-slate-50" : "bg-white"}`}>
+                        <td className="px-3 py-4"><button onClick={() => toggleExpanded(id)} className="p-2 rounded-lg text-emerald-700 hover:bg-emerald-100 transition-colors" aria-label={expanded[id] ? "Ocultar productos" : "Mostrar productos"}>{expanded[id] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}</button></td>
+                        <td className="px-5 py-4 font-medium text-slate-900">{id}</td><td className="px-5 py-4"><span className="inline-flex items-center gap-2 text-slate-700"><Calendar className="w-4 h-4 text-slate-400" />{formatDate(venta.fecha)}</span></td>
+                        <td className="px-5 py-4"><span className="inline-flex max-w-48 truncate rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700">{venta.persona || "-"}</span></td><td className="px-5 py-4"><button onClick={() => toggleExpanded(id)} className="text-blue-700 hover:text-blue-900 hover:underline font-medium">{venta.detalles.length} {venta.detalles.length === 1 ? "producto" : "productos"}</button></td>
+                        <td className="px-5 py-4 font-semibold text-slate-900">{money(venta.total)}</td><td className="px-5 py-4"><span className="inline-flex rounded px-2 py-1 text-sm bg-green-100 text-green-800">{labels[tipo] || tipo}</span></td>
+                        <td className="px-5 py-4"><span className={`inline-flex rounded px-2 py-1 text-sm ${paid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>{paid ? "Pagado" : "Pendiente"}</span></td><td className="px-5 py-4 text-slate-700">{venta.id_pedido || "-"}</td>
+                        <td className="px-5 py-4"><div className="flex gap-1"><button onClick={() => handleTogglePago(venta)} className={`p-2 rounded-lg ${paid ? "text-amber-600 hover:bg-amber-50" : "text-green-600 hover:bg-green-50"}`} title={paid ? "Marcar pendiente" : "Marcar pagado"}>{paid ? <Clock3 className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}</button><button onClick={() => editarVenta(venta)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Editar"><Edit2 className="w-4 h-4" /></button><button onClick={() => { setIdAEliminar(id); setModalOpen(true); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar"><Trash2 className="w-4 h-4" /></button></div></td>
+                    </tr>
+                    {expanded[id] && <tr className="bg-slate-50"><td colSpan={10} className="px-10 py-3"><div className="overflow-x-auto"><table className="w-full min-w-[760px] table-fixed text-sm"><colgroup><col className="w-[40%]" /><col className="w-[18%]" /><col className="w-[21%]" /><col className="w-[21%]" /></colgroup><thead className="text-slate-600"><tr className="border-b border-slate-200"><th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Producto</th><th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wide">Cantidad</th><th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide">Precio unitario</th><th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide">Subtotal</th></tr></thead><tbody>{venta.detalles.map((d, i) => <tr key={d.id_detalleVenta || d.id_detalle_venta || `${id}-${i}`} className="border-b border-slate-200 last:border-0 hover:bg-white"><td className="px-6 py-4"><span className="inline-flex items-center gap-2 font-semibold text-slate-900"><Package className="w-4 h-4 shrink-0 text-blue-500" />{d.Producto?.nombre || "Producto"}</span></td><td className="px-6 py-4 text-center"><span className="inline-flex min-w-12 justify-center rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-800">{formatQty(d.cantidad)}</span></td><td className="px-6 py-4 text-right text-slate-700">{money(d.precio)}</td><td className="px-6 py-4 text-right font-semibold text-slate-900">{money(Number(d.precio || 0) * Number(d.cantidad || 0))}</td></tr>)}</tbody></table></div></td></tr>}
+                </Fragment>;
+            })}</tbody>
+        </table></div>
+        <ConfirmModal open={modalOpen} onClose={() => setModalOpen(false)} onConfirm={async () => { await eliminarVenta(idAEliminar); setModalOpen(false); setIdAEliminar(null); }} title="Confirmar eliminación" message="¿Seguro que deseas eliminar esta venta?" />
+    </div>;
 }
