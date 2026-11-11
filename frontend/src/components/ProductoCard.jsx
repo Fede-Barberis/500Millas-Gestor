@@ -67,7 +67,7 @@ export default function ProductoCard({ producto, onDelete, onEdit, movimientos }
                 </div>
 
                 <div className="mt-5">
-                    <div className="mb-2 mt-4 flex items-center justify-between text-sm">
+                    <div className="mb-1 flex items-center justify-between text-sm">
                         <span className="font-semibold uppercase tracking-wide text-slate-600">inventario</span>
                         <span className="font-bold text-slate-700">{stockPercentage.toFixed(0)}%</span>
                     </div>
@@ -76,7 +76,7 @@ export default function ProductoCard({ producto, onDelete, onEdit, movimientos }
                     </div>
                 </div>
 
-                <div className="mt-4 mb-4 grid grid-cols-1 grid-rows-2 gap-3 sm:grid-cols-2 sm:grid-rows-1">
+                <div className="mt-3 mb-3 grid grid-cols-1 grid-rows-2 gap-3 sm:grid-cols-2 sm:grid-rows-1">
                     <div className="rounded-lg border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-3">
                         <div className="mb-1 flex items-center gap-2">
                             <TrendingUp className="h-4 w-4 text-blue-600" />
