@@ -12,10 +12,14 @@ const productoController =  {
     
     async crearProducto(req, res) {
         try {
-            const { nombre, stock } = req.body;
+            const { nombre, stock, tipoProducto } = req.body;
+            const tipo_producto = String(tipoProducto || "").trim().toUpperCase();
 
-            // Crear producción
-            const producto = await Producto.create({ nombre, stock });
+            if (!["ALFAJOR", "GALLETAS"].includes(tipo_producto)) {
+                return res.status(400).json({ ok: false, error: "El tipo de producto debe ser ALFAJOR o GALLETAS" });
+            }
+
+            const producto = await Producto.create({ nombre, stock, tipo_producto });
 
             res.json({
                 ok: true,
@@ -70,8 +74,15 @@ const productoController =  {
                 error: "Producto no encontrado" 
             });
 
+            const tipo_producto = String(req.body.tipoProducto || "").trim().toUpperCase();
+            if (!["ALFAJOR", "GALLETAS"].includes(tipo_producto)) {
+                return res.status(400).json({ ok: false, error: "El tipo de producto debe ser ALFAJOR o GALLETAS" });
+            }
+
             await producto.update({
                 nombre: req.body.nombre,
+                stock: req.body.stock,
+                tipo_producto
             });
             
             res.json({ 

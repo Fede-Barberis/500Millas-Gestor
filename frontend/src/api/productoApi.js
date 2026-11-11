@@ -17,12 +17,12 @@ export const crearProducto = async (payload) => {
         const response = await api.post('/producto', payload);
         return {
             ok: true,
-            produccion: response.data.produccion || response.data
+            producto: response.data.producto || response.data
         };
     } catch (error) {
         return {
             ok: false,
-            error: error.response.data.error || error.response.data.message || 'Error al crear producción'
+            error: error.response?.data?.error || error.response?.data?.message || 'Error al crear producto'
         };
     }
 }; 

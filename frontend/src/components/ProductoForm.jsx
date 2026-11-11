@@ -22,7 +22,8 @@ export default function ProductoForm({ onCreated, onClose, initialData, isEditin
         defaultValues: {
             nombre: "",
             // imagen: "",
-            stock: ""
+            stock: "",
+            tipoProducto: ""
         },
     });
 
@@ -31,13 +32,15 @@ export default function ProductoForm({ onCreated, onClose, initialData, isEditin
             reset({
                 nombre: initialData.nombre,
                 // imagen: "",
-                stock: initialData.stock
+                stock: initialData.stock,
+                tipoProducto: initialData.tipo_producto || initialData.tipoProducto || ""
             });
         } else {
             reset({
                 nombre: "",
                 // imagen: "",
-                stock: ""
+                stock: "",
+                tipoProducto: "",
             });
         }
     }, [initialData, reset]);
@@ -83,11 +86,11 @@ export default function ProductoForm({ onCreated, onClose, initialData, isEditin
 
                 if (resp.ok) {
                     toast.success("Producto creado")
-                    onCreated(resp.produccion);
+                    onCreated(resp.producto);
                     onClose();
                 } else {
                     const errorMsg = resp.error || "Ocurrió un error inesperado";
-                    toast.error("Error al crear la producción", {
+                    toast.error("Error al crear el producto", {
                         description: errorMsg,
                         duration: 6000,
                     });
@@ -160,6 +163,28 @@ export default function ProductoForm({ onCreated, onClose, initialData, isEditin
                                     {errors.nombre && (
                                         <p className="text-red-500 text-sm flex items-center gap-1">
                                             <span className="font-bold">•</span> {errors.nombre.message}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Tipo de producto */}
+                                <div className="space-y-2">
+                                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                        <Package className="w-4 h-4 text-blue-600" />
+                                        Tipo de Producto
+                                        <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        {...register("tipoProducto")}
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    >
+                                        <option value="">Seleccioná el tipo de producto</option>
+                                        <option value="ALFAJOR">Alfajor</option>
+                                        <option value="GALLETAS">Galletas</option>
+                                    </select>
+                                    {errors.tipoProducto && (
+                                        <p className="text-red-500 text-sm flex items-center gap-1">
+                                            <span className="font-bold">•</span> {errors.tipoProducto.message}
                                         </p>
                                     )}
                                 </div>

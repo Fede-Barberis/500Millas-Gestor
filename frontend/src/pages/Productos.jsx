@@ -29,7 +29,7 @@ export default function Productos() {
     if (error) return <ErrorMessage error={error} />;
 
     return (
-        <div className="px-6 py-2 space-y-8">
+        <div className="px-6 py-2 space-y-4">
             
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-center gap-5">
@@ -52,7 +52,7 @@ export default function Productos() {
             </div>
 
             {/* Cards de productos */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-items-center gap-4 lg:gap-5">
                 {productos.map((producto) => (
                     <ProductoCard
                         key={producto.id_producto}
