@@ -2,6 +2,11 @@ import { Producto, Venta, VentaDetalle, ReciboPago, ReciboPagoVenta, Remito } fr
 import actualizarStockProducto from "../helpers/actualizarStockProducto.js"
 import db from "../config/database.js";
 
+const interpretarPagado = (valor) => {
+    if (typeof valor === "string") return ["1", "true", "si", "sí", "yes", "y"].includes(valor.trim().toLowerCase());
+    return valor === true || valor === 1;
+};
+
 
 const ventaController = {
 
@@ -75,7 +80,7 @@ const ventaController = {
             const porVenta = new Map();
             pagosPrevios.forEach((p) => porVenta.set(p.id_venta, (porVenta.get(p.id_venta) || 0) + Number(p.importe)));
             const importes = seleccionadas.map((venta) => {
-                if (venta.isPagado) throw new Error(`La venta #${venta.id_venta} ya figura pagada`);
+                if (interpretarPagado(venta.isPagado)) throw new Error(`La venta #${venta.id_venta} ya figura pagada`);
                 const total = venta.VentaDetalles.reduce((sum, d) => sum + Number(d.precio) * Number(d.cantidad), 0);
                 const restante = Math.round((total - (porVenta.get(venta.id_venta) || 0)) * 100) / 100;
                 if (restante <= 0) throw new Error(`La venta #${venta.id_venta} no tiene saldo pendiente`);
@@ -135,7 +140,7 @@ const ventaController = {
                 const abonado = pagosVenta.reduce((sum, p) => sum + Number(p.importe || 0), 0);
                 json.total = total;
                 json.total_pagado = abonado;
-                json.saldo_pendiente = json.isPagado ? 0 : Math.max(0, Math.round((total - abonado) * 100) / 100);
+                json.saldo_pendiente = interpretarPagado(json.isPagado) ? 0 : Math.max(0, Math.round((total - abonado) * 100) / 100);
                 json.recibos_asociados = pagosVenta.map((p) => {
                     const idRecibo = p.ReciboPago?.id_recibo ?? p.id_recibo;
                     return {

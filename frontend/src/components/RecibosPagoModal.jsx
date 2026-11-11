@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { jsPDF } from "jspdf";
 import { crearReciboPago, getRecibosPago } from "../api/ventaApi.js";
+import { obtenerSaldoVenta, obtenerTotalVenta } from "../utils/ventaFinance.js";
 import { toast } from "sonner";
 import { X, ReceiptText, Download, Search } from "lucide-react";
 
@@ -63,7 +64,7 @@ export default function RecibosPagoModal({ mode = "crear", ventas = [], onClose,
     const [fechaFiltro, setFechaFiltro] = useState("");
     const [guardando, setGuardando] = useState(false);
     useEffect(() => {
-        setImportes(Object.fromEntries(ventas.map((v) => [v.id_venta, Number(v.saldo_pendiente ?? v.total ?? 0)])));
+        setImportes(Object.fromEntries(ventas.map((v) => [v.id_venta, obtenerSaldoVenta(v)])));
         if (mode === "historial") getRecibosPago().then((data) => setRecibos(Array.isArray(data) ? data : []));
     }, [ventas, mode]);
     const total = useMemo(() => ventas.reduce((s, v) => s + Number(importes[v.id_venta] || 0), 0), [ventas, importes]);
@@ -71,7 +72,7 @@ export default function RecibosPagoModal({ mode = "crear", ventas = [], onClose,
     const guardar = async () => {
         for (const venta of ventas) {
             const importe = Number(importes[venta.id_venta]);
-            if (!Number.isFinite(importe) || importe <= 0 || importe > Number(venta.saldo_pendiente ?? venta.total)) {
+            if (!Number.isFinite(importe) || importe <= 0 || importe > obtenerSaldoVenta(venta)) {
                 toast.error(`Revisa el importe de la venta #${venta.id_venta}`); return;
             }
         }
@@ -91,7 +92,7 @@ export default function RecibosPagoModal({ mode = "crear", ventas = [], onClose,
                 <button onClick={onClose} className="rounded-lg p-2 hover:bg-white/15" aria-label="Cerrar"><X /></button>
             </header>
             {mode === "crear" ? <div className="max-h-[calc(92vh-76px)] space-y-5 overflow-y-auto p-6">
-                <div className="overflow-x-auto rounded-xl border"><table className="w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th className="p-3">Venta / fecha</th><th className="p-3 text-right">Importe original</th><th className="p-3 text-right">Saldo pendiente</th><th className="p-3 text-right">A cobrar</th></tr></thead><tbody className="divide-y">{ventas.map((v) => <tr key={v.id_venta}><td className="p-3 font-medium">Venta #{v.id_venta}<span className="ml-2 text-slate-500">{date(v.fecha)}</span></td><td className="p-3 text-right">{money(v.total)}</td><td className="p-3 text-right">{money(v.saldo_pendiente)}</td><td className="p-3 text-right"><input type="number" min="0.01" max={v.saldo_pendiente} step="0.01" value={importes[v.id_venta] ?? ""} onChange={(e) => setImportes((prev) => ({ ...prev, [v.id_venta]: e.target.value }))} className="w-32 rounded-lg border px-3 py-2 text-right" /></td></tr>)}</tbody></table></div>
+                <div className="overflow-x-auto rounded-xl border"><table className="w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th className="p-3">Venta / fecha</th><th className="p-3 text-right">Importe original</th><th className="p-3 text-right">Saldo pendiente</th><th className="p-3 text-right">A cobrar</th></tr></thead><tbody className="divide-y">{ventas.map((v) => { const totalVenta = obtenerTotalVenta(v); const saldo = obtenerSaldoVenta(v); return <tr key={v.id_venta}><td className="p-3 font-medium">Venta #{v.id_venta}<span className="ml-2 text-slate-500">{date(v.fecha)}</span></td><td className="p-3 text-right">{money(totalVenta)}</td><td className="p-3 text-right">{money(saldo)}</td><td className="p-3 text-right"><input type="number" min="0.01" max={saldo} step="0.01" value={importes[v.id_venta] ?? ""} onChange={(e) => setImportes((prev) => ({ ...prev, [v.id_venta]: e.target.value }))} className="w-32 rounded-lg border px-3 py-2 text-right" /></td></tr>; })}</tbody></table></div>
                 <div className="grid gap-4 sm:grid-cols-2"><label className="text-sm font-medium">Fecha del pago<input type="date" value={fechaPago} onChange={(e) => setFechaPago(e.target.value)} className="mt-1 w-full rounded-lg border p-2.5" /></label><label className="text-sm font-medium">Medio de pago<select value={medio} onChange={(e) => setMedio(e.target.value)} className="mt-1 w-full rounded-lg border p-2.5"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option><option value="cheque">Cheque</option><option value="otro">Otro</option></select></label></div>
                 <label className="block text-sm font-medium">Observaciones (opcional)<textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={2} className="mt-1 w-full rounded-lg border p-2.5" /></label>
                 <div className="flex flex-col items-end gap-3 border-t pt-4 sm:flex-row sm:justify-between"><p className="text-xl font-bold text-emerald-800">Total recibido: {money(total)}</p><div className="flex gap-2"><button onClick={onClose} className="rounded-lg border px-4 py-2.5">Cancelar</button><button disabled={guardando || total <= 0} onClick={guardar} className="rounded-lg bg-emerald-600 px-5 py-2.5 font-semibold text-white disabled:opacity-50">{guardando ? "Registrando..." : "Confirmar pago y descargar PDF"}</button></div></div>

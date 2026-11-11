@@ -2,6 +2,7 @@ import { Fragment, useMemo, useState } from "react";
 import { Calendar, CheckCircle2, ChevronDown, ChevronRight, Edit2, Filter, HandCoins, Handshake, Package, Search, Trash2, Clock3 } from "lucide-react";
 import { toast } from "sonner";
 import ConfirmModal from "./ModalConfirmacion";
+import { interpretarVentaPagada, obtenerSaldoVenta } from "../utils/ventaFinance.js";
 
 const money = (value) => Number(value || 0).toLocaleString("es-AR", { style: "currency", currency: "ARS" });
 const formatDate = (value) => {
@@ -25,10 +26,7 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
     const [isPagado, setIsPagado] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
 
-    const interpretarEstadoPago = (valor) => {
-        if (typeof valor === "string") return ["1", "true", "si", "sí", "yes", "y"].includes(valor.trim().toLowerCase());
-        return Boolean(valor);
-    };
+    const interpretarEstadoPago = interpretarVentaPagada;
     const rows = useMemo(() => ventas.map((venta) => {
         const detalles = venta.VentaDetalles || [];
         return { ...venta, detalles, total: detalles.reduce((sum, d) => sum + Number(d.precio || 0) * Number(d.cantidad || 0), 0) };
@@ -47,7 +45,7 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
         else toast.error("No se pudo actualizar el estado", { description: resp?.error || "Intenta nuevamente" });
     };
     const clienteSeleccionado = ventas.find((venta) => ventasSeleccionadas.includes(venta.id_venta))?.persona;
-    const pendientesCliente = ventas.filter((venta) => !interpretarEstadoPago(venta.isPagado) && Number(venta.saldo_pendiente ?? venta.total) > 0 && (!clienteSeleccionado || venta.persona?.toLowerCase() === clienteSeleccionado.toLowerCase()));
+    const pendientesCliente = ventas.filter((venta) => !interpretarEstadoPago(venta.isPagado) && obtenerSaldoVenta(venta) > 0 && (!clienteSeleccionado || venta.persona?.toLowerCase() === clienteSeleccionado.toLowerCase()));
 
     return <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-emerald-500 to-green-400 px-6 py-5">
@@ -74,7 +72,7 @@ export default function VentaTable({ ventas, productos, eliminarVenta, editarVen
                 const id = venta.id_venta;
                 const tipo = venta.tipo || "venta";
                 const labels = { venta: "Venta", donacion: "Donación", cajas_negras: "Cajas Negras", consumo_propio: "Consumo Propio" };
-                const balance = Number(venta.saldo_pendiente ?? (paid ? 0 : venta.total));
+                const balance = obtenerSaldoVenta(venta);
                 const clienteIncompatible = clienteSeleccionado && venta.persona?.toLowerCase() !== clienteSeleccionado.toLowerCase();
                 const canSelect = !paid && balance > 0 && !clienteIncompatible;
                 return <Fragment key={id}>
