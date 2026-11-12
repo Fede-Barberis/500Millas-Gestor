@@ -5,6 +5,7 @@ import { toast } from "sonner";
 export default function DescontarStockModal({ materiaPrimas, onClose, onSubmit }) {
     const [idMateriaPrima, setIdMateriaPrima] = useState("");
     const [cantidad, setCantidad] = useState("");
+    const [observacion, setObservacion] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const materiaSeleccionada = useMemo(
         () => materiaPrimas.find((mp) => String(mp.id_materiaPrima) === idMateriaPrima),
@@ -20,10 +21,10 @@ export default function DescontarStockModal({ materiaPrimas, onClose, onSubmit }
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        if (!materiaSeleccionada || !cantidadValida) return;
+        if (!materiaSeleccionada || !cantidadValida || !observacion.trim()) return;
 
         setIsSubmitting(true);
-        const response = await onSubmit(materiaSeleccionada.id_materiaPrima, cantidadNumber);
+        const response = await onSubmit(materiaSeleccionada.id_materiaPrima, cantidadNumber, observacion.trim());
         setIsSubmitting(false);
 
         if (!response?.ok) {
@@ -65,6 +66,20 @@ export default function DescontarStockModal({ materiaPrimas, onClose, onSubmit }
                         </select>
                     </label>
 
+                    <label className="block text-sm font-semibold text-gray-700">
+                        Motivo del ajuste
+                        <textarea
+                            required
+                            maxLength={255}
+                            value={observacion}
+                            onChange={(event) => setObservacion(event.target.value)}
+                            disabled={!materiaSeleccionada}
+                            placeholder="Ej.: diferencia detectada en el conteo físico"
+                            rows={2}
+                            className="mt-2 w-full resize-y rounded-lg border border-gray-300 px-3 py-3 font-normal focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 disabled:bg-gray-100"
+                        />
+                    </label>
+
                     {materiaSeleccionada && (
                         <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                             <span className="text-sm text-slate-600">Stock actual</span>
@@ -101,7 +116,7 @@ export default function DescontarStockModal({ materiaPrimas, onClose, onSubmit }
 
                     <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
                         <button type="button" onClick={onClose} className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-700 hover:bg-gray-50">Cancelar</button>
-                        <button type="submit" disabled={!cantidadValida || isSubmitting} className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 font-semibold text-white shadow-sm transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50">
+                        <button type="submit" disabled={!cantidadValida || !observacion.trim() || isSubmitting} className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 font-semibold text-white shadow-sm transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50">
                             <MinusCircle className="h-4 w-4" />{isSubmitting ? "Descontando..." : "Confirmar descuento"}
                         </button>
                     </div>

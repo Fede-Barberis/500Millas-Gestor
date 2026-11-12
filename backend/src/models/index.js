@@ -18,6 +18,7 @@ import ReporteMensual from "./reporteMensual.js";
 import ReciboPago from "./reciboPago.js";
 import ReciboPagoVenta from "./reciboPagoVenta.js";
 import Remito from "./remito.js";
+import StockMovimiento from "./stockMovimiento.js";
 
 // Definir asociaciones entre modelos
 
@@ -34,6 +35,12 @@ Venta.hasMany(ReciboPagoVenta, { foreignKey: "id_venta" });
 ReciboPagoVenta.belongsTo(Venta, { foreignKey: "id_venta" });
 Venta.hasOne(Remito, { foreignKey: "id_venta" });
 Remito.belongsTo(Venta, { foreignKey: "id_venta" });
+Producto.hasMany(StockMovimiento, { foreignKey: "id_producto", as: "movimientosStockProducto", onDelete: "SET NULL" });
+StockMovimiento.belongsTo(Producto, { foreignKey: "id_producto", as: "Producto", onDelete: "SET NULL" });
+MateriaPrima.hasMany(StockMovimiento, { foreignKey: "id_materiaPrima", as: "movimientosStockMateriaPrima", onDelete: "SET NULL" });
+StockMovimiento.belongsTo(MateriaPrima, { foreignKey: "id_materiaPrima", as: "MateriaPrima", onDelete: "SET NULL" });
+Usuario.hasMany(StockMovimiento, { foreignKey: "usuario_id", as: "movimientosStockUsuario", onDelete: "SET NULL" });
+StockMovimiento.belongsTo(Usuario, { foreignKey: "usuario_id", as: "Usuario", onDelete: "SET NULL" });
 
 // MateriaPrima -> CompraMP (Una materia prima puede tener muchas compras)
 MateriaPrima.hasMany(CompraMP, { foreignKey: 'id_materiaPrima' });
@@ -123,5 +130,6 @@ export {
     ReporteMensual,
     ReciboPago,
     ReciboPagoVenta,
-    Remito
+    Remito,
+    StockMovimiento
 };

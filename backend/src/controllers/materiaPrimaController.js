@@ -44,10 +44,11 @@ const materiaPrimaController =  {
         try {
             const idMateriaPrima = Number(req.body.id_materiaPrima);
             const cantidad = Number(req.body.cantidad);
+            const observacion = String(req.body.observacion || "").trim();
 
-            if (!Number.isInteger(idMateriaPrima) || idMateriaPrima <= 0 || !Number.isFinite(cantidad) || cantidad <= 0) {
+            if (!Number.isInteger(idMateriaPrima) || idMateriaPrima <= 0 || !Number.isFinite(cantidad) || cantidad <= 0 || !observacion || observacion.length > 255) {
                 await transaction.rollback();
-                return res.status(400).json({ ok: false, error: "Seleccioná una materia prima e ingresá una cantidad mayor que cero" });
+                return res.status(400).json({ ok: false, error: "Seleccioná una materia prima, ingresá una cantidad válida y explicá el motivo del ajuste" });
             }
 
             if (Math.abs(cantidad * 100 - Math.round(cantidad * 100)) > 1e-8) {
@@ -74,7 +75,9 @@ const materiaPrimaController =  {
                 return res.status(409).json({ ok: false, error: `Stock insuficiente. Disponible: ${mp.stock} ${mp.unidad_base}` });
             }
 
-            await actualizarStockMateriaPrima(idMateriaPrima, cantidad, "sub", transaction);
+            await actualizarStockMateriaPrima(idMateriaPrima, cantidad, "sub", transaction, {
+                tipo: "ajuste_manual", origenTipo: "ajuste_manual", usuarioId: req.user?.userId, observacion
+            });
             const stockRestante = Number(mp.stock) - cantidad;
             await transaction.commit();
 
@@ -121,7 +124,9 @@ const materiaPrimaController =  {
             );
 
             // Sumar stock
-            await actualizarStockMateriaPrima(id_materiaPrima, cantidadBase, "add", transaction);
+            await actualizarStockMateriaPrima(id_materiaPrima, cantidadBase, "add", transaction, {
+                tipo: "compra_mp", origenTipo: "compra_mp", origenId: compraMp.id_compra, usuarioId: req.user?.userId
+            });
 
             await transaction.commit();
 
@@ -178,7 +183,8 @@ const materiaPrimaController =  {
                 compraMp.id_materiaPrima,
                 cantidadBase,
                 "sub",
-                transaction
+                transaction,
+                { tipo: "anulacion_compra_mp", origenTipo: "compra_mp", origenId: compraMp.id_compra, usuarioId: req.user?.userId }
             );
     
             await CompraMP.destroy({ where: { id_compra }, transaction });
@@ -254,14 +260,16 @@ const materiaPrimaController =  {
                         newMateriaId,
                         diferencia,
                         "add",
-                        transaction
+                        transaction,
+                        { tipo: "edicion_compra_mp", origenTipo: "compra_mp", origenId: compra.id_compra, usuarioId: req.user?.userId }
                     );
                 } else if (diferencia < 0) {
                     await actualizarStockMateriaPrima(
                         newMateriaId,
                         Math.abs(diferencia),
                         "sub",
-                        transaction
+                        transaction,
+                        { tipo: "edicion_compra_mp", origenTipo: "compra_mp", origenId: compra.id_compra, usuarioId: req.user?.userId }
                     );
                 }
             } else {
@@ -270,14 +278,16 @@ const materiaPrimaController =  {
                     oldMateriaId,
                     oldCantidadBase,
                     "sub",
-                    transaction
+                    transaction,
+                    { tipo: "edicion_compra_mp", origenTipo: "compra_mp", origenId: compra.id_compra, usuarioId: req.user?.userId }
                 );
     
                 await actualizarStockMateriaPrima(
                     newMateriaId,
                     newCantidadBase,
                     "add",
-                    transaction
+                    transaction,
+                    { tipo: "edicion_compra_mp", origenTipo: "compra_mp", origenId: compra.id_compra, usuarioId: req.user?.userId }
                 );
             }
     

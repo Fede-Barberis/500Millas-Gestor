@@ -7,7 +7,7 @@ const DESPERDICIO_MATERIA_PRIMA = [
     { nombre: "Dulce de Leche", cantidad: 1 }
 ];
 
-export async function procesarReceta(id_receta, operacion, transaction) {
+export async function procesarReceta(id_receta, operacion, transaction, contexto = {}) {
     const ingredientes = await RecetaMateriaPrima.findAll({
         where: { id_receta },
         transaction
@@ -18,7 +18,8 @@ export async function procesarReceta(id_receta, operacion, transaction) {
             ing.id_materiaPrima,
             ing.cantidad_necesaria,
             operacion,
-            transaction
+            transaction,
+            contexto
         );
     }
 
@@ -53,7 +54,8 @@ export async function procesarReceta(id_receta, operacion, transaction) {
                 desperdicio.id_materiaPrima,
                 configured.cantidad,
                 operacion,
-                transaction
+                transaction,
+                contexto
             );
         }
     }

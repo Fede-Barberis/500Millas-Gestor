@@ -70,9 +70,9 @@ export function useMateriaPrimaData() {
         }
     };
 
-    const descontarStockMateriaPrima = async (id_materiaPrima, cantidad) => {
+    const descontarStockMateriaPrima = async (id_materiaPrima, cantidad, observacion) => {
         try {
-            const resp = await descontarStockApi({ id_materiaPrima, cantidad });
+            const resp = await descontarStockApi({ id_materiaPrima, cantidad, observacion });
             if (!resp.ok) return resp;
             await fetchData();
             return { ok: true, materiaPrima: resp.materiaPrima };

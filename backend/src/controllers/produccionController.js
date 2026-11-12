@@ -80,13 +80,13 @@ const produccionController = {
             );
 
             // Descontar receta base
-            await procesarReceta(id_receta, "sub", t);
+            await procesarReceta(id_receta, "sub", t, { tipo: "consumo_receta", origenTipo: "produccion", origenId: produccion.id_produccion, usuarioId: req.user?.userId });
 
             // Crear detalles y actualizar stocks
             for (const det of detalles) {
                 const { id_producto, cantidad, fch_vencimiento, lote } = det;
                 
-                const producto = await Producto.findByPk(id_producto);
+                const producto = await Producto.findByPk(id_producto, { transaction: t });
 
                 // Calcular tapas según tipo de producto
                 console.log("Producto:", producto.nombre, producto.tipo_producto);
@@ -107,10 +107,10 @@ const produccionController = {
                 }, { transaction: t });
 
                 // Producto terminado
-                await actualizarStockProducto(id_producto, cantidad, "add", t);
+                await actualizarStockProducto(id_producto, cantidad, "add", t, { tipo: "produccion", origenTipo: "produccion", origenId: produccion.id_produccion, usuarioId: req.user?.userId });
 
                 // Consumos extra
-                await procesarConsumoExtra(id_producto, cantidad, "sub", t);
+                await procesarConsumoExtra(id_producto, cantidad, "sub", t, { tipo: "consumo_extra", origenTipo: "produccion", origenId: produccion.id_produccion, usuarioId: req.user?.userId });
             }
 
             await t.commit();
@@ -148,11 +148,11 @@ const produccionController = {
             }
 
             // Revertir stock
-            await procesarReceta(produccion.id_receta, "add", t);
+            await procesarReceta(produccion.id_receta, "add", t, { tipo: "reversion_edicion_produccion", origenTipo: "produccion", origenId: produccion.id_produccion, usuarioId: req.user?.userId });
 
             for (const det of produccion.DetalleProduccions) {
-                await actualizarStockProducto(det.id_producto, det.cantidad, "sub", t);
-                await procesarConsumoExtra(det.id_producto, det.cantidad, "add", t);
+                await actualizarStockProducto(det.id_producto, det.cantidad, "sub", t, { tipo: "reversion_edicion_produccion", origenTipo: "produccion", origenId: produccion.id_produccion, usuarioId: req.user?.userId });
+                await procesarConsumoExtra(det.id_producto, det.cantidad, "add", t, { tipo: "reversion_edicion_produccion", origenTipo: "produccion", origenId: produccion.id_produccion, usuarioId: req.user?.userId });
             }
 
             // Limpiar y actualizar
@@ -164,7 +164,7 @@ const produccionController = {
             await produccion.update({ fecha, id_receta }, { transaction: t });
 
             // Aplicar nuevo stock
-            await procesarReceta(id_receta, "sub", t);
+            await procesarReceta(id_receta, "sub", t, { tipo: "consumo_receta", origenTipo: "produccion", origenId: produccion.id_produccion, usuarioId: req.user?.userId });
 
             for (const det of detalles) {
                 const producto = det.Producto || await Producto.findByPk(det.id_producto);
@@ -182,8 +182,8 @@ const produccionController = {
                     tapas
                 }, { transaction: t });
 
-                await actualizarStockProducto(det.id_producto, det.cantidad, "add", t);
-                await procesarConsumoExtra(det.id_producto, det.cantidad, "sub", t);
+                await actualizarStockProducto(det.id_producto, det.cantidad, "add", t, { tipo: "produccion", origenTipo: "produccion", origenId: produccion.id_produccion, usuarioId: req.user?.userId });
+                await procesarConsumoExtra(det.id_producto, det.cantidad, "sub", t, { tipo: "consumo_extra", origenTipo: "produccion", origenId: produccion.id_produccion, usuarioId: req.user?.userId });
             }
 
             await t.commit();
@@ -217,11 +217,11 @@ const produccionController = {
             }
 
             // Revertir stocks
-            await procesarReceta(produccion.id_receta, "add", t);
+            await procesarReceta(produccion.id_receta, "add", t, { tipo: "anulacion_produccion", origenTipo: "produccion", origenId: produccion.id_produccion, usuarioId: req.user?.userId });
 
             for (const det of produccion.DetalleProduccions) {
-                await actualizarStockProducto(det.id_producto, det.cantidad, "sub", t);
-                await procesarConsumoExtra(det.id_producto, det.cantidad, "add", t);
+                await actualizarStockProducto(det.id_producto, det.cantidad, "sub", t, { tipo: "anulacion_produccion", origenTipo: "produccion", origenId: produccion.id_produccion, usuarioId: req.user?.userId });
+                await procesarConsumoExtra(det.id_producto, det.cantidad, "add", t, { tipo: "anulacion_produccion", origenTipo: "produccion", origenId: produccion.id_produccion, usuarioId: req.user?.userId });
             }
 
             // Eliminar registros

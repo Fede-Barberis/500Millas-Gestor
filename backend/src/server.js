@@ -10,6 +10,7 @@ import materiaPrimaRoutes from './routes/materiaPrimaRoutes.js'
 import ventaRoutes from './routes/ventaRoutes.js'
 import pedidoRoutes from './routes/pedidoRoutes.js'
 import reporteRoutes from './routes/reporteRoutes.js'
+import stockMovimientoRoutes from './routes/stockMovimientoRoutes.js'
 import { authenticateToken } from "./middlewares/authMiddlewares.js";
 import { iniciarCierreMensualCron } from "./cron/cierreMensualCron.js";
 
@@ -33,6 +34,7 @@ app.use("/api/materiaPrima", materiaPrimaRoutes);
 app.use("/api/ventas", ventaRoutes);
 app.use("/api/pedidos", pedidoRoutes);
 app.use("/api/reportes", reporteRoutes);
+app.use("/api/movimientos-stock", stockMovimientoRoutes);
 
 
 // Ruta de prueba protegida

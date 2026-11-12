@@ -272,7 +272,8 @@ const ventaController = {
                     item.id_producto,
                     item.cantidad,
                     "sub",
-                    transaction
+                    transaction,
+                    { tipo: "venta", origenTipo: "venta", origenId: venta.id_venta, usuarioId: req.user?.userId }
                 );
             }
 
@@ -331,7 +332,8 @@ const ventaController = {
                     det.id_producto,
                     det.cantidad,
                     "add",
-                    transaction
+                    transaction,
+                    { tipo: "anulacion_venta", origenTipo: "venta", origenId: venta.id_venta, usuarioId: req.user?.userId }
                 );
             }
 
@@ -571,7 +573,8 @@ const ventaController = {
                         nuevo.id_producto,
                         nuevo.cantidad,
                         "sub",
-                        transaction
+                        transaction,
+                        { tipo: "edicion_venta", origenTipo: "venta", origenId: venta.id_venta, usuarioId: req.user?.userId }
                     );
 
                 } else {
@@ -580,9 +583,9 @@ const ventaController = {
 
                     if (diff !== 0) {
                         if (diff > 0) {
-                            await actualizarStockProducto(viejo.id_producto, diff, "sub", transaction);
+                            await actualizarStockProducto(viejo.id_producto, diff, "sub", transaction, { tipo: "edicion_venta", origenTipo: "venta", origenId: venta.id_venta, usuarioId: req.user?.userId });
                         } else {
-                            await actualizarStockProducto(viejo.id_producto, Math.abs(diff), "add", transaction);
+                            await actualizarStockProducto(viejo.id_producto, Math.abs(diff), "add", transaction, { tipo: "edicion_venta", origenTipo: "venta", origenId: venta.id_venta, usuarioId: req.user?.userId });
                         }
                     }
 
@@ -600,7 +603,7 @@ const ventaController = {
             // Los detalles que quedaron en mapViejos están eliminados
             for (const det of mapViejos.values()) {
                 // devolver stock
-                await actualizarStockProducto(det.id_producto, det.cantidad, "add", transaction);
+                await actualizarStockProducto(det.id_producto, det.cantidad, "add", transaction, { tipo: "edicion_venta", origenTipo: "venta", origenId: venta.id_venta, usuarioId: req.user?.userId });
 
                 // eliminar detalle
                 await det.destroy({ transaction });

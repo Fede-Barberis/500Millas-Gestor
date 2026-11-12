@@ -144,7 +144,8 @@ const pedidoController = {
                     det.id_producto,
                     det.cantidad,
                     "add",
-                    transaction
+                    transaction,
+                    { tipo: "anulacion_pedido", origenTipo: "pedido", origenId: pedido.id_pedido, usuarioId: req.user?.userId }
                 );
             }
 
@@ -267,7 +268,7 @@ const pedidoController = {
 
             // Si pasó a ENTREGADO → crear venta
             if (pasaAEntregado) {
-                await crearVentaDesdePedido(id_pedido, transaction);
+                await crearVentaDesdePedido(id_pedido, transaction, req.user?.userId);
             }
 
             await transaction.commit();

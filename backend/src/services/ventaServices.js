@@ -1,7 +1,7 @@
 import actualizarStockProducto from "../helpers/actualizarStockProducto.js";
 import { Pedido, DetallePedido, Venta, VentaDetalle } from "../models/index.js";
 
-export async function crearVentaDesdePedido(id_pedido, transaction) {
+export async function crearVentaDesdePedido(id_pedido, transaction, usuarioId) {
     const pedido = await Pedido.findByPk(id_pedido, {
         include: [DetallePedido],
         transaction
@@ -33,7 +33,8 @@ export async function crearVentaDesdePedido(id_pedido, transaction) {
             det.id_producto,
             det.cantidad,
             "sub",          // Resta del stock
-            transaction
+            transaction,
+            { tipo: "venta", origenTipo: "venta", origenId: venta.id_venta, usuarioId }
         );
     }
 

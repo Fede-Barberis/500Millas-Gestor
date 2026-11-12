@@ -5,7 +5,8 @@ export default async function procesarConsumoExtra(
     id_producto,
     cantidad,
     operacion,
-    transaction
+    transaction,
+    contexto = {}
 ) {
     const cantidadNumerica = Number(cantidad || 0);
 
@@ -26,7 +27,8 @@ export default async function procesarConsumoExtra(
                 ext.id_materiaPrima,
                 total,
                 operacion,
-                transaction
+                transaction,
+                contexto
             );
         }
 
@@ -45,7 +47,8 @@ export default async function procesarConsumoExtra(
                     ing.id_materiaPrima,
                     lotes * ing.cantidad_necesaria,
                     operacion,
-                    transaction
+                    transaction,
+                    contexto
                 );
             }
         }
