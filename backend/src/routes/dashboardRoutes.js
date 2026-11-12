@@ -6,6 +6,7 @@ const router = Router();
 
 // Todas las rutas del dashboard requieren autenticación
 router.get("/stats", authenticateToken, dashboardController.getStats);
+router.get("/cuentas-por-cobrar", authenticateToken, dashboardController.getCuentasPorCobrar);
 router.get("/areaChart", authenticateToken, dashboardController.getDataChart);
 router.get("/pieChart", authenticateToken, dashboardController.getPieDataChart);
 router.get("/alerts", authenticateToken, dashboardController.getAlertas);

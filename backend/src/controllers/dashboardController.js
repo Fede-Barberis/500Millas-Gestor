@@ -1,5 +1,19 @@
-import { Venta, VentaDetalle, CompraMP, Producto, MateriaPrima, Pedido, DetallePedido } from "../models/index.js";
+import { Venta, VentaDetalle, CompraMP, Producto, MateriaPrima, Pedido, DetallePedido, ReciboPagoVenta } from "../models/index.js";
 import { Sequelize, Op } from "sequelize";
+
+const interpretarPagado = (valor) => {
+    if (typeof valor === "string") return ["1", "true", "si", "sí", "yes", "y"].includes(valor.trim().toLowerCase());
+    return valor === true || valor === 1;
+};
+
+const diasDesdeFecha = (fecha) => {
+    if (!fecha) return 0;
+    const [year, month, day] = String(fecha).slice(0, 10).split("-").map(Number);
+    const fechaUTC = Date.UTC(year, month - 1, day);
+    const ahora = new Date();
+    const hoyUTC = Date.UTC(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+    return Math.max(0, Math.floor((hoyUTC - fechaUTC) / 86400000));
+};
 
 async function calcularTotalesPorMes(inicio, fin) {
     try {
@@ -56,6 +70,66 @@ async function calcularTotalesPorMes(inicio, fin) {
 
 
 const dashboardController = {
+    async getCuentasPorCobrar(req, res) {
+        try {
+            const ventas = await Venta.findAll({
+                attributes: ["id_venta", "fecha", "persona", "isPagado"],
+                include: [{ model: VentaDetalle }],
+                order: [["fecha", "ASC"], ["id_venta", "ASC"]]
+            });
+            const pagos = await ReciboPagoVenta.findAll({
+                where: { id_venta: ventas.map((venta) => venta.id_venta) },
+                attributes: ["id_venta", "importe"]
+            });
+            const abonadoPorVenta = new Map();
+            pagos.forEach((pago) => {
+                const idVenta = Number(pago.id_venta);
+                abonadoPorVenta.set(idVenta, (abonadoPorVenta.get(idVenta) || 0) + Number(pago.importe || 0));
+            });
+
+            const pendientes = [];
+            ventas.forEach((venta) => {
+                if (interpretarPagado(venta.isPagado)) return;
+                const total = (venta.VentaDetalles || []).reduce((sum, detalle) => sum + Number(detalle.precio || 0) * Number(detalle.cantidad || 0), 0);
+                const saldo = Math.max(0, Math.round((total - (abonadoPorVenta.get(Number(venta.id_venta)) || 0)) * 100) / 100);
+                if (saldo <= 0) return;
+                pendientes.push({
+                    id_venta: venta.id_venta,
+                    persona: String(venta.persona || "Sin cliente").trim(),
+                    fecha: venta.fecha,
+                    saldo,
+                    dias: diasDesdeFecha(venta.fecha)
+                });
+            });
+
+            const porCliente = new Map();
+            pendientes.forEach((venta) => {
+                const llave = venta.persona.toLocaleLowerCase("es-AR");
+                if (!porCliente.has(llave)) porCliente.set(llave, { cliente: venta.persona, saldo: 0, cantidad_ventas: 0, ventas: [] });
+                const cliente = porCliente.get(llave);
+                cliente.saldo = Math.round((cliente.saldo + venta.saldo) * 100) / 100;
+                cliente.cantidad_ventas += 1;
+                cliente.ventas.push(venta);
+            });
+            const clientes = [...porCliente.values()].map((cliente) => {
+                const masAntigua = cliente.ventas.reduce((oldest, venta) => !oldest || venta.dias > oldest.dias ? venta : oldest, null);
+                return { ...cliente, dias_mas_antigua: masAntigua?.dias || 0, ventas: undefined };
+            }).sort((a, b) => b.saldo - a.saldo);
+            const deudaMasAntigua = pendientes.reduce((oldest, venta) => !oldest || venta.dias > oldest.dias ? venta : oldest, null);
+
+            return res.json({
+                deuda_total: Math.round(pendientes.reduce((sum, venta) => sum + venta.saldo, 0) * 100) / 100,
+                ventas_pendientes: pendientes.length,
+                clientes_con_saldo: clientes.length,
+                deuda_mas_antigua: deudaMasAntigua,
+                clientes: clientes.slice(0, 5)
+            });
+        } catch (error) {
+            console.error("Error en getCuentasPorCobrar:", error);
+            return res.status(500).json({ error: "No se pudieron calcular las cuentas por cobrar", message: error.message });
+        }
+    },
+
     async getStats(req, res) {
         try {
             const now = new Date();

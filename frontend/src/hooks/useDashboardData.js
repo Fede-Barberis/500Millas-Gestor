@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
     getDataChart,
     getPieChart,
     getStats,
-    getAlertas,
+    getCuentasPorCobrar,
     getPedidos,
     getDetallePedido
 } from "../api/dashboardApi";
@@ -22,8 +22,7 @@ export function useDashboardData() {
     const [mes, setMes] = useState(new Date().getMonth() + 1);
     const [anio, setAnio] = useState(new Date().getFullYear());
 
-    const [alertas, setAlertas] = useState([]);
-    const [filtro, setFiltro] = useState("all");
+    const [cuentasPorCobrar, setCuentasPorCobrar] = useState({ deuda_total: 0, ventas_pendientes: 0, clientes_con_saldo: 0, deuda_mas_antigua: null, clientes: [] });
 
     const [pedidos, setPedidos] = useState([]);
     const [detallePedido, setDetallePedido] = useState(null);
@@ -52,27 +51,19 @@ export function useDashboardData() {
         }
     }, []);
 
-    const fetchAlertas = useCallback(async () => {
-        try {
-        const alertasData = await getAlertas();
-        setAlertas(alertasData?.alertas || []);
-        } catch (err) {
-        console.error("Error al cargar alertas", err);
-        }
-    }, []);
-
-
     const fetchSecondaryData = useCallback(async () => {
         try {
-        const [chartData, pieChartData, pedidosData] = await Promise.all([
+        const [chartData, pieChartData, pedidosData, cuentasData] = await Promise.all([
             getDataChart(),
             getPieChart(mes, anio),
-            getPedidos()
+            getPedidos(),
+            getCuentasPorCobrar()
         ]);
 
         setChart(Array.isArray(chartData) ? chartData : []);
         setPieChart(Array.isArray(pieChartData) ? pieChartData : []);
         setPedidos(pedidosData || []);
+        setCuentasPorCobrar(cuentasData || { deuda_total: 0, ventas_pendientes: 0, clientes_con_saldo: 0, deuda_mas_antigua: null, clientes: [] });
 
         } catch (err) {
         console.error("Error al cargar datos secundarios", err);
@@ -84,30 +75,7 @@ export function useDashboardData() {
     useEffect(() => {
         fetchCoreData();
         fetchSecondaryData();
-        fetchAlertas();
-    }, [fetchCoreData, fetchSecondaryData, fetchAlertas]);
-
-    // Refresco de alertas (30s)
-    useEffect(() => {
-        const interval = setInterval(async () => {
-        if (document.hidden) return;
-
-        try {
-            const alertasData = await getAlertas();
-            const nuevasAlertas = alertasData?.alertas || [];
-
-            setAlertas(prev =>
-            JSON.stringify(prev) === JSON.stringify(nuevasAlertas)
-                ? prev
-                : nuevasAlertas
-            );
-        } catch (e) {
-            console.error("Error al refrescar alertas", e);
-        }
-        }, 60000);
-
-        return () => clearInterval(interval);
-    }, []);
+    }, [fetchCoreData, fetchSecondaryData]);
 
 
     // Seleccionar pedido (con cache)
@@ -146,11 +114,8 @@ export function useDashboardData() {
         setMes,
         setAnio,
 
-        // Alertas
-        alertas,
-        totalAlertas: alertas.length,
-        filtro,
-        setFiltro,
+        // Cuentas por cobrar
+        cuentasPorCobrar,
 
         // Pedidos
         pedidos,
@@ -166,7 +131,6 @@ export function useDashboardData() {
         refetch: () => {
         fetchCoreData();
         fetchSecondaryData();
-        fetchAlertas();
         }
     };
 }

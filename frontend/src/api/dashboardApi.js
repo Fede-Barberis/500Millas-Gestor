@@ -23,6 +23,11 @@ export const getAlertas = async () => {
     return res.data;
 }
 
+export const getCuentasPorCobrar = async () => {
+    const res = await api.get("/dashboard/cuentas-por-cobrar");
+    return res.data;
+};
+
 
 export const getPedidos = async () => {
     const res = await api.get("/dashboard/pedidos");

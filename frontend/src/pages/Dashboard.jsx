@@ -1,7 +1,7 @@
 import { useDashboardData } from "../hooks/useDashboardData";
 import IncomeExpenseChart from "../components/IncomeExpenseChart";
 import TopVentasChart from "../components/TopVentasChart";
-import AlertasDashboard from "../components/AlertasDashboard";
+import CuentasPorCobrarDashboard from "../components/CuentasPorCobrarDashboard";
 import Calendario from "../components/Calendario";
 import ModalDetallePedido from "../components/ModalDetallePedido";
 import { Loading, ErrorMessage } from "../components/Loading";
@@ -18,9 +18,7 @@ export default function Dashboard() {
         anio,
         setMes,
         setAnio,
-        alertas,
-        filtro,
-        setFiltro,
+        cuentasPorCobrar,
         pedidos,
         detallePedido,
         seleccionarPedido,
@@ -63,13 +61,9 @@ export default function Dashboard() {
                     />
                 </section>
 
-                {/* --- Alertas + Calendario --- */}
+                {/* --- Cuentas por cobrar + Calendario --- */}
                 <section className="grid grid-cols-1 lg:grid-cols-[2fr_0.75fr] gap-6  items-start">
-                    <AlertasDashboard
-                        alertas={alertas}
-                        filtro={filtro}
-                        setFiltro={setFiltro}
-                    />
+                    <CuentasPorCobrarDashboard data={cuentasPorCobrar} />
                     
                     <Calendario
                         pedidos={pedidos}
